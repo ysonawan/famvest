@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #ffffff;
+            padding: 20px;
+        }
+
+        .title {
+            font-size: 20px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            padding: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
+        }
+
+        .label {
+            font-weight: bold;
+            color: #444;
+            display: inline-block;
+            min-width: 160px;
+        }
+
+        .value {
+            color: #222;
+        }
+
+        .status-success {
+            color: green;
+            font-weight: bold;
+        }
+
+        .status-failed {
+            color: red;
+            font-weight: bold;
+        }
+
+        .italic {
+            font-style: italic;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .label {
+                display: block;
+                margin-bottom: 4px;
+            }
+
+            .value {
+                display: block;
+                margin-bottom: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <p style="color: #c0392b; font-weight: bold; margin-top: 5px;">
+        ⚠️ This is an automated scheduler error notification email.
+    </p>
+
+    <p>Hello <strong>Admins</strong>,</p>
+    <p>Below is a summary of the scheduled tasks executed recently. Failed tasks are highlighted for your attention.</p>
+
+    <div class="title">Task Execution Log</div>
+    <div th:if="${#lists.isEmpty(scheduledTasks)}" class="italic">
+        No scheduler executions found for the selected period.
+    </div>
+
+    <div th:each="task : ${scheduledTasks}" class="card">
+        <div><span class="label">Scheduler Name:</span> <span class="value" th:text="${task.schedulerName}">MyScheduler</span></div>
+        <div><span class="label">Cron Expression:</span> <span class="value" th:text="${task.cronExpression}">0 0 1 * * *</span></div>
+        <div>
+            <span class="label">Status:</span>
+            <span class="value" th:text="${task.status}" th:classappend="${task.status == 'COMPLETED'} ? 'status-success' : 'status-failed'">FAILED</span>
+        </div>
+        <div><span class="label">Last Execution Date:</span> <span class="value" th:text="${task.lastExecutionDate}">2025-07-24</span></div>
+        <div><span class="label">Start Time:</span> <span class="value" th:text="${task.executionStartTime}">10:00 AM</span></div>
+        <div><span class="label">End Time:</span> <span class="value" th:text="${task.executionEndTime}">10:02 AM</span></div>
+        <div><span class="label">Error:</span> <span class="value" th:text="${task.errorMessage != null ? task.errorMessage : '-'}">N/A</span></div>
+    </div>
+
+    <p>Regards,<br/>The FamVest App Team</p>
+</div>
+</body>
+</html>

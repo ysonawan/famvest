@@ -1,0 +1,36 @@
+<div *ngIf="!dismissed" [ngClass]="{ 'w-full mt-3 flex justify-center': atCenter }">
+  <div
+    class="w-auto w-full flex gap-2 p-2 rounded-md box-border border overflow-hidden text-sm"
+    [ngClass]="{
+      'bg-blue-50 border-blue-200 text-blue-800': type === 'info',
+      'bg-yellow-50  border-yellow-200 text-yellow-800': type === 'warning',
+      'bg-red-50  border-red-200 text-red-800': type === 'error',
+      'bg-green-50 border-green-200 text-green-800': type === 'success',
+      'justify-center items-center': atCenter
+    }"
+  >
+    <fa-icon
+      [icon]="icon"
+      class="h-5 w-5"
+      [ngClass]="{
+        'text-blue-500': type === 'info',
+        'text-yellow-500': type === 'warning',
+        'text-red-500': type === 'error',
+        'text-green-500': type === 'success'
+      }"
+    ></fa-icon>
+
+    <div [ngClass]="{ 'text-center': atCenter }">
+      <ng-content></ng-content>
+    </div>
+
+    <button
+      *ngIf="dismissible"
+      class="text-sm ml-2 text-gray-400 hover:text-gray-600"
+      (click)="closeNote()"
+      aria-label="Close"
+    >
+      ✕
+    </button>
+  </div>
+</div>

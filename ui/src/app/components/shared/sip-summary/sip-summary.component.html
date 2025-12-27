@@ -1,0 +1,41 @@
+<div class="grid grid-cols-2 sm:grid-cols-5 md:grid-cols-5 lg:grid-cols-5 gap-2 sm:gap-4 mb-2 w-full">
+  <!-- Total SIP Amount -->
+  <div class="bg-white p-2 border rounded-md shadow-sm flex flex-col items-center justify-center text-center min-h-16" *ngIf="totalSipAmount !== undefined">
+    <span class="text-xs text-gray-500 uppercase tracking-wide">Total SIP Amount</span>
+    <span class="text-base font-medium text-gray-600 mt-1">
+      {{ totalSipAmount | currency:'INR':'symbol':'1.0-0' }}
+    </span>
+  </div>
+
+  <!-- Contribution Till Now -->
+  <div class="bg-white p-2 border rounded-md shadow-sm flex flex-col items-center justify-center text-center min-h-16" *ngIf="contributionThisMonth !== undefined">
+    <span class="text-xs text-gray-500 uppercase tracking-wide">Till Date</span>
+    <span class="text-base font-medium text-gray-600 mt-1">
+      {{ contributionThisMonth | currency:'INR':'symbol':'1.0-0' }}
+    </span>
+  </div>
+
+  <!-- Upcoming SIPs -->
+  <div class="bg-white p-2 border rounded-md shadow-sm flex flex-col items-center justify-center text-center min-h-16" *ngIf="upcomingSips !== undefined">
+    <span class="text-xs text-gray-500 uppercase tracking-wide">Upcoming SIPs</span>
+    <span class="text-base font-medium text-gray-600 mt-1">
+      {{ upcomingSips | number:'1.0-0' }}
+    </span>
+  </div>
+
+  <!-- Active SIPs -->
+  <div class="bg-white p-2 border rounded-md shadow-sm flex flex-col items-center justify-center text-center min-h-16" *ngIf="activeSips !== undefined">
+    <span class="text-xs text-gray-500 uppercase tracking-wide">Active SIPs</span>
+    <span class="text-base font-medium text-green-600 mt-1">
+      {{ activeSips | number:'1.0-0' }}
+    </span>
+  </div>
+
+  <!-- Paused SIPs - Hidden on mobile, visible on sm and above -->
+  <div class="hidden sm:flex bg-white p-2 border rounded-md shadow-sm flex-col items-center justify-center text-center min-h-16" *ngIf="pausedSips !== undefined">
+    <span class="text-xs text-gray-500 uppercase tracking-wide">Paused SIPs</span>
+    <span class="text-base font-medium text-orange-600 mt-1">
+      {{ pausedSips | number:'1.0-0' }}
+    </span>
+  </div>
+</div>

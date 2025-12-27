@@ -1,0 +1,209 @@
+<div
+  cdkDrag
+  cdkDragRootElement=".cdk-overlay-pane"
+  class="w-full max-w-3xl mx-auto rounded-md shadow-sm overflow-hidden text-gray-700"
+  [ngClass]="positionData.isBuyMode ? 'bg-blue-500' : 'bg-orange-500'"
+>
+  <!-- Header -->
+  <div
+    cdkDragHandle
+    class="flex items-start sm:items-center justify-between p-2 flex-col sm:flex-row gap-2 sm:gap-0 cursor-move"
+    [ngClass]="positionData.isBuyMode ? 'bg-blue-500 text-white' : 'bg-orange-500 text-white'"
+  >
+    <div>
+      <p class="font-medium">{{ instrument.displayName }} <span class="text-sm text-gray-100 ml-1">{{ instrument.segment }} </span>
+        <app-market-depth-invoker [title]="instrument.displayName"
+                                  [instrumentToken]="instrument.instrumentToken"
+                                  [iconColor]="'white'">
+        </app-market-depth-invoker>
+      </p>
+      <span class="font-medium">{{ instrument.lastPrice | number: '1.2-2' }}
+        <span class="text-sm rounded-md px-1 py-[1px] text-white">
+          {{ instrument.change / 100 | percent:'1.2-2' }}
+        </span>
+      </span>
+    </div>
+    <button (click)="toggleMode()" class="focus:outline-none self-end sm:self-auto">
+      <div *ngIf="requestType !== 'modify' && !positionData.isExitPosition"
+           class="w-16 h-6 bg-white rounded-md flex items-center px-1"
+           [ngClass]="{ 'justify-end': positionData.isBuyMode }"
+      >
+        <div
+          class="w-3 h-3 rounded-md"
+          [ngClass]="positionData.isBuyMode ? 'bg-blue-500' : 'bg-orange-500'"
+        ></div>
+      </div>
+    </button>
+  </div>
+
+  <!-- Form Body -->
+  <div class="bg-white p-4 space-y-3 max-h-[70vh] overflow-y-auto">
+    <!-- Price and Trigger Inputs -->
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+      <!-- Price -->
+      <div class="flex-1">
+        <label class="text-sm text-gray-600">
+          {{ positionData.marketOrder ? 'Market Price' : 'Price' }}
+          <span *ngIf="!positionData.marketOrder" class="text-red-500">*</span>
+        </label>
+        <div class="relative">
+          <input
+            type="text"
+            [(ngModel)]="positionData.price"
+            [disabled]="positionData.marketOrder"
+            placeholder="Enter price"
+            (ngModelChange)="computeAllRequiredMargins()"
+            class="form-control"
+          />
+          <button
+            matTooltip="{{getPriceInputTitle()}}"
+            type="button"
+            (click)="onPriceInputIconClick()"
+            class="absolute right-2 top-1/2 -translate-y-1/2 text-2xl"
+            [ngClass]="positionData.isBuyMode ? 'text-blue-500 hover:text-blue-700' : 'text-orange-500 hover:text-orange-700'"
+          >
+            {{ priceInputIcon }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Trigger Price -->
+      <div class="flex-1">
+        <label class="text-sm text-gray-600">
+          Trigger Price
+          <span *ngIf="positionData.slOrder" class="text-red-500">*</span>
+        </label>
+        <div class="relative">
+          <input
+            type="text"
+            [(ngModel)]="positionData.triggerPrice"
+            [disabled]="!positionData.slOrder"
+            placeholder="Enter trigger price"
+            class="form-control"
+          />
+          <button
+            matTooltip="{{getTriggerPriceInputTitle()}}"
+            type="button"
+            (click)="onTriggerPriceInputIconClick()"
+            class="absolute right-2 top-1/2 -translate-y-1/2 text-2xl"
+            [ngClass]="positionData.isBuyMode ? 'text-blue-500 hover:text-blue-700' : 'text-orange-500 hover:text-orange-700'"
+          >
+            {{ triggerPriceInputIcon }}
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- Product Type: Intraday / Overnight -->
+    <div class="flex items-center gap-6">
+      <label class="inline-flex items-center gap-1">
+        <input
+          [disabled]="sourceData.isExitPosition"
+          type="radio"
+          class="form-radio text-blue-500"
+          [name]="'productType_' + dialogInstanceId"
+          [(ngModel)]="positionData.productType"
+          value="MIS"
+        />
+        <span class="text-sm text-gray-700">Intraday</span>
+      </label>
+
+      <label class="inline-flex items-center gap-1">
+        <input
+          [disabled]="sourceData.isExitPosition"
+          type="radio"
+          class="form-radio text-purple-500"
+          [name]="'productType_' + dialogInstanceId"
+          [(ngModel)]="positionData.productType"
+          value="NON-MIS"
+        />
+        <span class="text-sm text-gray-700">Overnight</span>
+      </label>
+    </div>
+
+    <!-- Accounts Section -->
+    <div>
+      <label class="text-sm text-gray-600">Positions <span class="text-red-500">*</span></label>
+      <div class="space-y-3 mt-2">
+        <div
+          *ngFor="let order of orders; let i = index"
+          class="flex flex-col sm:flex-row flex-wrap items-start sm:items-end gap-4 p-2 border rounded-md"
+        >
+          <!-- Account Select -->
+          <div class="flex flex-col flex-grow min-w-[150px] w-full sm:w-auto">
+            <label class="text-sm text-gray-600 mb-1">Trading Account <span class="text-red-500">*</span></label>
+            <select [disabled]="(sourceData.orderId != null && !sourceData.isCopy) || sourceData.isExitPosition"
+                    [(ngModel)]="order.tradingAccountId"
+                    (ngModelChange)="getHistoricalQuantity(order, instrument.segment); computeRequiredMargin(order)"
+                    class="form-control"
+            >
+              <option value="" disabled>Select Account</option>
+              <option *ngFor="let user of users" [value]="user.userId">
+                {{ user.name }} - {{ user.userId }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Quantity & Funds -->
+          <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-end w-full sm:w-auto">
+            <!-- Quantity -->
+            <div class="flex flex-col w-full sm:w-24">
+              <label class="text-sm text-gray-600 mb-1">Quantity <span class="text-red-500">*</span></label>
+              <input
+                type="text"
+                [(ngModel)]="order.quantity"
+                (ngModelChange)="computeRequiredMargin(order)"
+                placeholder="Quantity"
+                maxlength="5"
+                class="form-control"
+              />
+            </div>
+
+            <!-- Funds -->
+            <div class="flex flex-col min-w-[130px]">
+              <label class="text-sm text-gray-600">
+                Req. <span class="text-blue-600">{{ order.requiredMargin | currency:'INR':'symbol':'1.0-0' }}</span>
+                <span *ngIf="order.charges > 0" class="ml-2 text-blue-600">+{{ order.charges | currency:'INR':'symbol':'1.0-0' }}</span>
+              </label>
+              <label class="text-sm text-gray-600">
+                Avail. <span class="text-blue-600">{{ order.availableMargin | currency:'INR':'symbol':'1.0-0' }}</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Remove Button -->
+          <button *ngIf="orders.length > 1"
+            [matTooltip]="'Remove'"
+            (click)="removeAccount(i)"
+            class="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors">
+            <fa-icon [icon]="faTrash" class="text-sm"></fa-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Add Position -->
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-4 gap-2">
+        <button *ngIf="(sourceData.orderId == null || sourceData.isCopy) && !sourceData.isExitPosition"
+                (click)="addAccount()"
+                class="text-sm text-blue-600 hover:underline focus:outline-none">
+          <fa-icon [icon]="faPlus"></fa-icon>
+          Add Position
+        </button>
+
+        <div class="flex flex-wrap gap-2 text-sm">
+          <app-small-chip [text]="buySell" [color]="buySell === 'BUY' ? 'blue' : 'red'"></app-small-chip>
+          <app-small-chip [text]="orderType" [color]="'gray'"></app-small-chip>
+          <app-small-chip [text]="productType" [color]="productType === 'MIS' ? 'orange':'purple'"></app-small-chip>
+          <app-small-chip [text]="instrument.segment" [color]="'gray'"></app-small-chip>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div cdkDragHandle class="bg-white p-4 border-t flex flex-col sm:flex-row justify-between gap-2 cursor-move">
+    <button (click)="onSubmit()"
+            [ngClass]="positionData.isBuyMode ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-orange-500 text-white hover:bg-orange-600'"
+            class="flex-1 py-2 px-4 rounded-md">{{ positionData.isBuyMode ? 'Buy' : 'Sell' }}</button>
+    <button type="button" (click)="onCancel()" class="flex-1 py-2 px-4 border rounded-md hover:bg-gray-100">Cancel</button>
+  </div>
+</div>

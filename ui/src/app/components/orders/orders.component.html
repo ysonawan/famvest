@@ -1,0 +1,106 @@
+<div class="page-container">
+
+  <div *ngIf="!errorMessage" >
+    <div class="flex items-center justify-between border-b border-gray-200 mb-4">
+      <!-- Left: Tab buttons -->
+      <div class="flex gap-1">
+        <div *ngFor="let tab of subTabs"
+             (click)="setActiveSubTab(tab)"
+             [class.active-tab]="tab === activeSubTab"
+             [class.text-gray-700]="tab !== activeSubTab"
+             class="tab-category cursor-pointer pb-2 px-4 py-2 rounded-md transition hover:bg-gray-100 hover:text-blue-500 relative"
+        >
+          {{ tab }}
+          <!-- Count Badge -->
+          <span
+            class="text-sm gap-1.5 font-semibold pb-0.5 px-2 py-1 rounded-md"
+            [ngClass]="{
+              'bg-blue-100 text-blue-600': tab === activeSubTab,
+              'bg-blue-50 text-blue-500': tab !== activeSubTab
+            }"
+          >
+            {{ tabCounts[tab] }}
+          </span>
+          <span
+            *ngIf="tab === activeSubTab" class="absolute left-0 bottom-1 h-0.5 w-0 bg-blue-500 transition-all"
+          ></span>
+        </div>
+      </div>
+
+      <!-- Right: View MF Orders -->
+      <div class="flex-shrink-0">
+        <a
+          routerLink="/mf"
+          class="tab-category cursor-pointer pb-2 px-4 py-2 rounded-md transition text-gray-700 hover:bg-gray-100 hover:text-blue-500 relative flex items-center gap-2"
+        >
+          <fa-icon [icon]="faListCheck" class="text-sm"></fa-icon>
+          MF Orders
+        </a>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-between gap-4 w-full mb-2">
+      <!-- Filter/Sort Component -->
+      <div class="flex-shrink-0">
+        <app-tool-bar [filterOptions]="filterOptions" [filterSelection]="filterSelection" [showChargesButton]="true"
+           [isLoadingData]="isLoadingData"
+           (filtersChanged)="applyFilters($event)"
+           (handleRefresh)="handleRefresh($event)"
+           (charges)="viewCharges()"
+           [showCancelButton]="selectedOrders.length > 0"
+           [cancelButtonLabel]="'Cancel Selected (' + selectedOrders.length + ')'"
+           (exit)="cancelSelectedOrders()">
+        </app-tool-bar>
+      </div>
+
+      <!-- Empty div to push user filter and search input to the right -->
+      <div class="flex-1"></div>
+
+      <!-- User Filter - positioned before search input -->
+      <div class="flex-shrink-0">
+        <app-user-filter
+          (selectAllUsers)="onAllUserSelection()"
+          (selectUsers)="onUserSelection($event)"
+          (totalUsers)="captureUsers($event)"
+          [selectedUserIds]="selectedUserIds" >
+        </app-user-filter>
+      </div>
+
+      <!-- Search Input - positioned on the right -->
+      <div class="flex-shrink-0">
+        <app-search-input
+          [placeholder]="'Search orders by User ID or Instrument'"
+          (inputChange)="onStocksFnoSearch($event)"
+          [searchTerm]="searchQuery" >
+        </app-search-input>
+      </div>
+    </div>
+
+    <div [@expandCollapse]="showCharges ? 'expanded' : 'collapsed'"
+         class="overflow-hidden transition-all duration-300">
+      <app-charges-summary>
+      </app-charges-summary>
+    </div>
+
+    <div *ngIf="stockFnoGroupedOrders.length > 0; else noData" class="page-content">
+      <app-orders-table
+        [groupedOrders]="stockFnoGroupedOrders"
+        [actions]="actions"
+        [fallbackAvatarUrl]="fallbackAvatarUrl"
+        (handleClickAction)="handleAction($event)"
+        (selectedOrdersChange)="onSelectedOrdersChange($event)">
+      </app-orders-table>
+    </div>
+    <ng-template #noData>
+      <div class="page-content">
+        <app-note
+          [type]="'warning'"
+          [dismissible]="false"
+          [atCenter]="true"
+        >
+          You don't have any orders in this section. Check your filters or search criteria and request token status for the trading accounts.
+        </app-note>
+      </div>
+    </ng-template>
+  </div>
+</div>

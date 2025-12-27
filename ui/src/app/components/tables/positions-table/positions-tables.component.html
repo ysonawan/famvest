@@ -1,0 +1,213 @@
+<!-- Positions Table with Sticky Header and User Separators -->
+<div class="w-full bg-white border border-gray-200 rounded-md shadow-sm">
+
+  @if (!groupedPositions || groupedPositions.length === 0) {
+    <div class="flex items-center justify-center py-12 px-4">
+      <p class="text-gray-500 text-center">No positions to display</p>
+    </div>
+  } @else {
+    <!-- Table View -->
+    <div>
+      <table class="w-full border-collapse">
+        <thead class="sticky top-0 z-20 bg-gray-100 shadow-sm">
+          <tr class="text-left text-sm font-semibold text-gray-700 uppercase tracking-wider bg-gray-100 border-b border-gray-300">
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-center w-12">
+              <input
+                type="checkbox"
+                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer"
+                [checked]="isAllSelected"
+                [indeterminate]="isSomeSelected"
+                (change)="toggleSelectAll()"
+                title="Select/Unselect all exitable positions"
+              />
+            </th>
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left whitespace-nowrap">
+              <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setSort('instrument')">
+                INSTRUMENT
+                <span class="text-[10px]" *ngIf="getSortIndicator('instrument')">{{ getSortIndicator('instrument') }}</span>
+              </button>
+            </th>
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+              <button type="button" class="flex items-center gap-1 w-full justify-end" (click)="setSort('quantity')">
+                QTY
+                <span class="text-[10px]" *ngIf="getSortIndicator('quantity')">{{ getSortIndicator('quantity') }}</span>
+              </button>
+            </th>
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+              <button type="button" class="flex items-center gap-1 w-full justify-end" (click)="setSort('averagePrice')">
+                AVG
+                <span class="text-[10px]" *ngIf="getSortIndicator('averagePrice')">{{ getSortIndicator('averagePrice') }}</span>
+              </button>
+            </th>
+
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+              <button type="button" class="flex items-center gap-1 w-full justify-end" (click)="setSort('change')">
+                LTP
+                <span class="text-[10px]" *ngIf="getSortIndicator('change')">{{ getSortIndicator('change') }}</span>
+              </button>
+            </th>
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+              <button type="button" class="flex items-center gap-1 w-full justify-end" (click)="setSort('value')">
+                VALUE
+                <span class="text-[10px]" *ngIf="getSortIndicator('value')">{{ getSortIndicator('value') }}</span>
+              </button>
+            </th>
+
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+              <button type="button" class="flex items-center gap-1 w-full justify-end" (click)="setSort('dayPnl')">
+                DAY P&L
+                <span class="text-[10px]" *ngIf="getSortIndicator('dayPnl')">{{ getSortIndicator('dayPnl') }}</span>
+              </button>
+            </th>
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+              <button type="button" class="flex items-center gap-1 w-full justify-end" (click)="setSort('netPnl')">
+                NET P&L
+                <span class="text-[10px]" *ngIf="getSortIndicator('netPnl')">{{ getSortIndicator('netPnl') }}</span>
+              </button>
+            </th>
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-center">ACTIONS</th>
+          </tr>
+        </thead>
+          <tbody class="bg-white">
+            <ng-container *ngFor="let group of sortedGroupedPositions; let isLast = last; trackBy: trackByUser">
+
+              <!-- User Summary Row (first row for each user) -->
+              <tr class="border-b border-gray-200 text-gray-700 text-sm md:text-sm">
+                <td colspan="6" class="px-2 md:px-4 whitespace-nowrap">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <app-user-info-header
+                      [userId]="group.userId"
+                      [userName]="group.userName || group.userId"
+                      [fullName]="group.fullName || group.userName"
+                      [avatarUrl]="group.avatarUrl"
+                      [fallbackAvatarUrl]="fallbackAvatarUrl">
+                    </app-user-info-header>
+                    <!-- Utilized Fund -->
+                    <span class="inline-flex items-center rounded-md px-2 py-0.5 text-sm whitespace-nowrap"
+                          [ngClass]="group.availableFunds < 0 ? 'text-red-600' : 'text-blue-600'">
+                      Utilized: {{ group.utilizedFunds | currency:'INR':'symbol':'1.0-0' }}
+                    </span>
+                    <!-- Available Fund -->
+                    <span class="inline-flex items-center rounded-md px-2 py-0.5 text-sm whitespace-nowrap"
+                          [ngClass]="group.availableFunds < 0 ? 'text-red-600' : 'text-green-600'">
+                      Available: {{ group.availableFunds | currency:'INR':'symbol':'1.0-0' }}
+                    </span>
+                  </div>
+                </td>
+
+                <td class="px-2 md:px-4 text-right whitespace-nowrap">
+                  <span class="font-medium" [ngClass]="color(group.daysPnL)">
+                    ₹{{ group.daysPnL | number:'1.2-2' }}
+                  </span>
+                </td>
+                <td class="px-2 md:px-4 text-right whitespace-nowrap">
+                  <span class="font-medium" [ngClass]="color(group.totalPnL)">
+                    ₹{{ group.totalPnL | number:'1.2-2' }}
+                  </span>
+                </td>
+                <td class="px-2 md:px-4 text-center whitespace-nowrap"></td>
+              </tr>
+
+              <!-- Position Rows -->
+              <ng-container *ngFor="let positionDetails of group.positions; trackBy: trackBySequenceNumber">
+                <tr [ngStyle]="{ opacity: positionDetails.position.netQuantity === 0 ? 0.5 : 1 }"
+                    class="border-b border-gray-200 text-sm text-gray-700 hover:bg-blue-50 transition-colors duration-150">
+
+                  <!-- Checkbox -->
+                  <td class="px-2 md:px-4 py-2 md:py-3 text-center whitespace-nowrap">
+                    <input
+                      *ngIf="positionDetails.position.netQuantity !== 0"
+                      type="checkbox"
+                      class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer"
+                      [checked]="isPositionSelected(positionDetails)"
+                      (change)="togglePositionSelection(positionDetails)"
+                      title="Select position for bulk exit"
+                    />
+                  </td>
+
+                  <!-- Instrument -->
+                  <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">
+                    <div class="flex items-center gap-2">
+                      <app-small-chip
+                        [text]="getTransactionType(positionDetails.position.netQuantity)"
+                        [color]="getTransactionTypeChipColor(positionDetails.position.netQuantity)">
+                      </app-small-chip>
+                      <span class="truncate max-w-xs" [title]="positionDetails.displayName">
+                        {{ positionDetails.displayName }}
+                      </span>
+                      <app-market-depth-invoker
+                        [title]="positionDetails.displayName"
+                        [instrumentToken]="positionDetails.position.instrumentToken">
+                      </app-market-depth-invoker>
+                      <app-small-chip [text]="positionDetails.position.product" [color]="positionDetails.position.product === 'MIS' ? 'orange':'purple'"></app-small-chip>
+                      <app-small-chip [text]="positionDetails.position.exchange" [color]="'gray'"></app-small-chip>
+                    </div>
+                  </td>
+
+                  <!-- Quantity -->
+                  <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+                    <span [ngClass]="quantityColor(positionDetails.position.netQuantity)">
+                      {{ positionDetails.position.netQuantity | number:'1.0-2' }}
+                    </span>
+                  </td>
+
+                  <!-- Sell Price -->
+                  <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+                    {{ positionDetails.position.averagePrice | number:'1.2-2' }}
+                  </td>
+
+                  <!-- LTP -->
+                  <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+                    <span [ngClass]="color(positionDetails.position.change)">
+                      {{ positionDetails.position.lastPrice | number:'1.2-2' }}
+                      <span
+                        [class.bg-green-50]="positionDetails.position.change > 0"
+                        [class.bg-red-50]="positionDetails.position.change < 0"
+                        class="text-sm rounded-md px-1 py-[1px]">
+                        {{ positionDetails.position.change / 100 | percent:'1.2-2' }}
+                      </span>
+                    </span>
+                  </td>
+
+                  <!-- Value -->
+                  <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+                    {{ positionDetails.position.value | currency:'INR':'symbol':'1.2-2' }}
+                  </td>
+
+                  <!-- Day P&L -->
+                  <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+                    <span [ngClass]="color(positionDetails.dayPnl)">
+                      {{ positionDetails.dayPnl | currency:'INR':'symbol':'1.2-2' }}
+                    </span>
+                  </td>
+
+                  <!-- Net P&L -->
+                  <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+                    <span [ngClass]="color(positionDetails.position.pnl)">
+                      {{ positionDetails.position.pnl | currency:'INR':'symbol':'1.2-2' }}
+                    </span>
+                  </td>
+
+                  <!-- Actions -->
+                  <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+                    <app-action-menu
+                      [row]="positionDetails"
+                      [actions]="getActionButtons(positionDetails)"
+                      (handleAction)="handleAction($event)">
+                    </app-action-menu>
+                  </td>
+                </tr>
+              </ng-container>
+
+              <!-- User Separator -->
+              <tr *ngIf="!isLast">
+                <td colspan="11" class="py-1">
+                  <div class="border-b border-dashed border-gray-100"></div>
+                </td>
+              </tr>
+            </ng-container>
+            </tbody>
+          </table>
+    </div>
+  }
+</div>

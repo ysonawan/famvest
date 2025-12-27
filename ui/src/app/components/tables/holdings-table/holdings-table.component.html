@@ -1,0 +1,219 @@
+<!-- Unified Holdings Table with Sticky Header and User Separators -->
+<div class="w-full bg-white border border-gray-200 rounded-md shadow-sm">
+
+  @if (!groupedHoldings || groupedHoldings.length === 0) {
+    <div class="flex items-center justify-center py-12 px-4">
+      <p class="text-gray-500 text-center">No holdings to display</p>
+    </div>
+  } @else {
+    <div>
+      <table class="w-full border-collapse">
+        <thead class="sticky top-0 z-20 bg-gray-100 shadow-sm">
+          <tr class="text-left text-sm font-semibold text-gray-700 uppercase tracking-wider bg-gray-100 border-b border-gray-300">
+              <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left">
+                <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setSort('instrument')">
+                  INSTRUMENT
+                  <span class="text-[10px]" *ngIf="getSortIndicator('instrument')">{{ getSortIndicator('instrument') }}</span>
+                </button>
+              </th>
+              <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-right">
+                <button type="button" class="flex items-center gap-1 w-full justify-end" (click)="setSort('quantity')">
+                  QTY
+                  <span class="text-[10px]" *ngIf="getSortIndicator('quantity')">{{ getSortIndicator('quantity') }}</span>
+                </button>
+              </th>
+              <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-right">
+                <button type="button" class="flex items-center gap-1 w-full justify-end" (click)="setSort('averagePrice')">
+                  AVG
+                  <span class="text-[10px]" *ngIf="getSortIndicator('averagePrice')">{{ getSortIndicator('averagePrice') }}</span>
+                </button>
+              </th>
+              <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-right">
+                <button type="button" class="flex items-center gap-1 w-full justify-end" (click)="setSort('dayChangePercentage')">
+                  LTP
+                  <span class="text-[10px]" *ngIf="getSortIndicator('dayChangePercentage')">{{ getSortIndicator('dayChangePercentage') }}</span>
+                </button>
+              </th>
+              <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-right">
+                <button type="button" class="flex items-center gap-1 w-full justify-end" (click)="setSort('investedAmount')">
+                  INVESTED
+                  <span class="text-[10px]" *ngIf="getSortIndicator('investedAmount')">{{ getSortIndicator('investedAmount') }}</span>
+                </button>
+              </th>
+              <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-right">
+                <button type="button" class="flex items-center gap-1 w-full justify-end" (click)="setSort('currentValue')">
+                  CURRENT
+                  <span class="text-[10px]" *ngIf="getSortIndicator('currentValue')">{{ getSortIndicator('currentValue') }}</span>
+                </button>
+              </th>
+              <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-right">
+                <button type="button" class="flex items-center gap-1 w-full justify-end" (click)="setSort('dayPnl')">
+                  DAY P&L
+                  <span class="text-[10px]" *ngIf="getSortIndicator('dayPnl')">{{ getSortIndicator('dayPnl') }}</span>
+                </button>
+              </th>
+              <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-right">
+                <button type="button" class="flex items-center gap-1 w-full justify-end" (click)="setSort('netChangePercentage')">
+                  NET P&L
+                  <span class="text-[10px]" *ngIf="getSortIndicator('netChangePercentage')">{{ getSortIndicator('netChangePercentage') }}</span>
+                </button>
+              </th>
+              <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-center">ACTIONS</th>
+            </tr>
+          </thead>
+
+          <tbody class="bg-white">
+            <ng-container *ngFor="let group of sortedGroupedHoldings; let isLast = last; trackBy: trackByUser">
+
+              <!-- User Summary Row (first row for each user) -->
+              <tr class="border-b border-gray-200 text-gray-700 text-sm">
+                <td colspan="4" class="px-2 md:px-4 whitespace-nowrap">
+                  <app-user-info-header
+                    [userId]="group.userId"
+                    [fullName]="group.fullName || group.userName"
+                    [userName]="group.userName || group.userId"
+                    [avatarUrl]="group.avatarUrl"
+                    [fallbackAvatarUrl]="fallbackAvatarUrl">
+                  </app-user-info-header>
+                </td>
+
+                <td class="px-2 md:px-4 text-right font-medium whitespace-nowrap">
+                  ₹{{ group.totalInvestment | number:'1.2-2' }}
+                </td>
+                <td class="px-2 md:px-4 text-right font-medium whitespace-nowrap">
+                  ₹{{ group.currentValue | number:'1.2-2' }}
+                </td>
+                <td class="px-2 md:px-4 text-right whitespace-nowrap">
+                  <span class="font-medium" [ngClass]="color(group.daysPnL)">
+                    ₹{{ group.daysPnL | number:'1.2-2' }}
+
+                  </span>
+                  <span [ngClass]="color(group.daysPnL)"
+                    [class.bg-green-50]="group.daysPnL > 0"
+                    [class.bg-red-50]="group.daysPnL < 0"
+                    class="text-sm rounded-md px-1 py-[1px] ">
+                    {{ group.daysPnLPercentage | percent:'1.2-2' }}
+                </span>
+                </td>
+                <td class="px-2 md:px-4 text-right whitespace-nowrap">
+                  <span class="font-medium" [ngClass]="color(group.totalPnL)">
+                    ₹{{ group.totalPnL | number:'1.2-2' }}
+
+                  </span>
+                  <span [ngClass]="color(group.totalPnL)"
+                      [class.bg-green-50]="group.totalPnL > 0"
+                      [class.bg-red-50]="group.totalPnL < 0"
+                      class="text-sm rounded-md px-1 py-[1px]">
+                      {{ group.totalPnLPercentage | percent:'1.2-2' }}
+                    </span>
+                </td>
+                <td class="px-2 md:px-4 text-center whitespace-nowrap"></td>
+              </tr>
+
+              <!-- Holdings Rows -->
+              <ng-container *ngFor="let holding of group.holdings; trackBy: trackBySequenceNumber">
+                <tr class="border-b border-gray-200 text-sm text-gray-700 hover:bg-blue-50 transition-colors duration-150">
+                  <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">
+                    <div class="flex items-center gap-2">
+                      <span
+                        class="hover:text-blue-600 truncate max-w-xs bg-none border-none p-0 m-0 text-left"
+                        [matTooltip]="holding.instrument">
+                        {{ holding.instrument }}
+                      </span>
+                      @if (isScopeToPledge(holding)) {
+                        <fa-icon
+                          [matTooltip]="'Review Pledge. Pledge Qty: ' + holding.collateralQuantity"
+                          [icon]="faTriangleExclamation"
+                          class="text-orange-600 flex-shrink-0 text-sm">
+                        </fa-icon>
+                      }
+                      @if (holding.type === 'Stocks') {
+                        <div class="flex items-center justify-center gap-2">
+                          <app-market-depth-invoker
+                            [title]="holding.instrument"
+                            [instrumentToken]="holding.instrumentToken">
+                          </app-market-depth-invoker>
+                        </div>
+                      }
+                    </div>
+                  </td>
+
+                  <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+                    @if (holding.type === 'Stocks') {
+                      {{ holding.quantity | number:'1.0-0' }}
+                    } @else {
+                      {{ holding.quantity | number:'1.2-2' }}
+                    }
+                  </td>
+
+                  <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+                    {{ holding.averagePrice | number:'1.2-2' }}
+                  </td>
+
+                  <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+                    <span [ngClass]="color(holding.dayChangePercentage)">
+                      {{ holding.lastPrice | number:'1.2-2' }}
+                      <span
+                        [class.bg-green-50]="holding.dayChangePercentage > 0"
+                        [class.bg-red-50]="holding.dayChangePercentage < 0"
+                        class="text-sm rounded-md px-1 py-[1px]">
+                        {{ holding.dayChangePercentage / 100 | percent:'1.2-2' }}
+                      </span>
+                    </span>
+                  </td>
+
+                  <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+                    ₹{{ holding.investedAmount | number:'1.2-2' }}
+                  </td>
+
+                  <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+                    ₹{{ holding.currentValue | number:'1.2-2' }}
+                  </td>
+
+                  <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+                    <span [ngClass]="color(holding.dayChangePercentage)">
+                      {{ holding.dayPnl | number:'1.2-2' }}
+                      <span
+                        [class.bg-green-50]="holding.dayChangePercentage > 0"
+                        [class.bg-red-50]="holding.dayChangePercentage < 0"
+                        class="text-sm rounded-md px-1 py-[1px]">
+                        {{ holding.dayChangePercentage / 100 | percent:'1.2-2' }}
+                      </span>
+                    </span>
+
+                  </td>
+
+                  <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+                    <span [ngClass]="color(holding.netChangePercentage)">
+                      {{ holding.netPnl | number:'1.2-2' }}
+                      <span
+                        [class.bg-green-50]="holding.netChangePercentage > 0"
+                        [class.bg-red-50]="holding.netChangePercentage < 0"
+                        class="text-sm rounded-md px-1 py-[1px]">
+                        {{ holding.netChangePercentage / 100 | percent:'1.2-2' }}
+                      </span>
+                    </span>
+                  </td>
+
+                  <td class="px-2 md:px-4 py-2 md:py-3 text-center whitespace-nowrap">
+                    <app-action-menu
+                      [row]="holding"
+                      [actions]="getActionButtons(holding)"
+                      (handleAction)="handleAction($event)">
+                    </app-action-menu>
+                  </td>
+                </tr>
+              </ng-container>
+
+              <!-- User Separator -->
+              <tr *ngIf="!isLast">
+                <td colspan="9" class="py-1">
+                  <div class="border-b border-dashed border-gray-200"></div>
+                </td>
+              </tr>
+            </ng-container>
+          </tbody>
+        </table>
+      </div>
+  }
+</div>

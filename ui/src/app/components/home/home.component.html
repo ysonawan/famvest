@@ -1,0 +1,432 @@
+<div class="page-container">
+
+  <div class="flex justify-between items-start mb-1">
+    <!-- Left: Empty space -->
+    <div class="flex-1 pr-4">
+      <h2 class="text-2xl md:text-2xl font-bold text-gray-600 mb-2">Welcome to FamVest</h2>
+    </div>
+    <!-- Right: User Filter -->
+    <div class="flex-shrink-0">
+    <!--  <button
+        (click)="refresh()"
+        class="text-blue-600 hover:underline focus:outline-none flex items-center"
+        [disabled]="isLoading"
+      >
+        <fa-icon [icon]="isLoading ? faSpinner : faRefresh" [class.fa-spin]="isLoading" class="mr-1"></fa-icon>
+        <span>{{ isLoading ? 'Loading' : 'Refresh' }}</span>
+      </button>-->
+      <app-user-filter
+        (selectAllUsers)="onAllUserSelection()"
+        (selectUsers)="onUserSelection($event)"
+        (totalUsers)="captureUsers($event)"
+        [selectedUserIds]="selectedUserIds">
+      </app-user-filter>
+    </div>
+  </div>
+
+  <!-- Header actions moved to a separate row below description -->
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
+    <div class="flex items-center">
+      <fa-icon [icon]="faArrowTrendDown" class="text-red-500 mr-2"></fa-icon>
+      <span class="text-red-700">{{ errorMessage }}</span>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="flex items-center justify-center py-20">
+    <div class="text-center">
+      <p class="text-lg text-gray-400 mt-2 flex items-center justify-center gap-2">
+        <span class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 inline-block"></span>
+        🚀 Fetching your financial empire... Please hold while we count your millions!
+      </p>
+    </div>
+  </div>
+  <!-- Dashboard Content -->
+  <div *ngIf="!isLoading && !errorMessage" class="page-content">
+
+    <!-- Portfolio Overview Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+
+      <!-- Combined Investment Card (Mobile Only) -->
+      <div class="md:hidden bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border-l-4 border-blue-500 relative overflow-hidden group"
+           [class.cursor-pointer]="hasMultipleUsers()"
+           (click)="hasMultipleUsers() && showInvestmentDetails()">
+        <div class="absolute top-0 right-0 w-20 h-20 bg-blue-50 rounded-bl-full opacity-50 group-hover:opacity-70 transition-opacity"></div>
+        <div class="relative z-10">
+          <!-- Horizontal Layout for Investment and Current Value -->
+          <div class="grid grid-cols-2 gap-4">
+            <!-- Total Investment Section -->
+            <div class="border-r border-gray-200 pr-3">
+              <div class="flex items-center mb-2">
+                <div class="p-2 bg-blue-100 rounded-md mr-2">
+                  <fa-icon [icon]="faWallet" class="text-blue-600 text-base"></fa-icon>
+                </div>
+                <span class="text-lg font-medium text-gray-600 m-0">Investment</span>
+              </div>
+              <div class="text-2xl font-medium text-gray-700">
+                ₹{{ stats.totalInvestment | number:'1.2-2' }}
+              </div>
+            </div>
+
+            <!-- Current Value Section -->
+            <div class="pl-1">
+              <div class="flex items-center mb-2">
+                <div class="p-2 bg-emerald-100 rounded-md mr-2">
+                  <fa-icon [icon]="faChartLine" class="text-emerald-600 text-base"></fa-icon>
+                </div>
+                <span class="text-lg font-medium text-gray-600 m-0">Current</span>
+              </div>
+              <div class="text-2xl font-medium text-gray-700">
+                ₹{{ stats.currentValue | number:'1.2-2' }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total Investment (Desktop Only) -->
+      <div class="hidden md:block bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border-l-4 border-blue-500 relative overflow-hidden group"
+           [class.cursor-pointer]="hasMultipleUsers()"
+           (click)="hasMultipleUsers() && showInvestmentDetails()">
+        <div class="absolute top-0 right-0 w-20 h-20 bg-blue-50 rounded-bl-full opacity-50 group-hover:opacity-70 transition-opacity"></div>
+        <div class="relative z-10">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center">
+              <div class="p-2 bg-blue-100 rounded-md mr-3">
+                <fa-icon [icon]="faWallet" class="text-blue-600 text-base"></fa-icon>
+              </div>
+              <span class="text-lg font-medium text-gray-600 m-0">Total Investment</span>
+            </div>
+          </div>
+          <div class="text-2xl md:text-2xl font-medium text-gray-700">
+            ₹{{ stats.totalInvestment | number:'1.2-2' }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Current Value (Desktop Only) -->
+      <div class="hidden md:block bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border-l-4 border-emerald-500 relative overflow-hidden group"
+           [class.cursor-pointer]="hasMultipleUsers()"
+           (click)="hasMultipleUsers() && showInvestmentDetails()">
+        <div class="absolute top-0 right-0 w-20 h-20 bg-emerald-50 rounded-bl-full opacity-50 group-hover:opacity-70 transition-opacity"></div>
+        <div class="relative z-10">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center">
+              <div class="p-2 bg-emerald-100 rounded-md mr-3">
+                <fa-icon [icon]="faChartLine" class="text-emerald-600 text-base"></fa-icon>
+              </div>
+              <span class="text-lg font-medium text-gray-600 m-0">Current Value</span>
+            </div>
+          </div>
+          <div class="text-2xl md:text-2xl font-medium text-gray-700">
+            ₹{{ stats.currentValue | number:'1.2-2' }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Total Gains -->
+      <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border-l-4 relative overflow-hidden group"
+           [class.cursor-pointer]="hasMultipleUsers()"
+           (click)="hasMultipleUsers() && showHoldingsPnLDetails()"
+           [ngClass]="{
+             'border-green-500': stats.totalGains >= 0,
+             'border-red-500': stats.totalGains < 0
+           }">
+        <div class="absolute top-0 right-0 w-20 h-20 rounded-bl-full opacity-50 group-hover:opacity-70 transition-opacity"
+             [ngClass]="{
+               'bg-green-50': stats.totalGains >= 0,
+               'bg-red-50': stats.totalGains < 0
+             }"></div>
+        <div class="relative z-10">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center">
+              <div class="p-2 rounded-md mr-3"
+                   [ngClass]="{
+                     'bg-green-100': stats.totalGains >= 0,
+                     'bg-red-100': stats.totalGains < 0
+                   }">
+                <fa-icon [icon]="stats.totalGains >= 0 ? faChartBar : faArrowTrendDown"
+                         class="text-base"
+                         [ngClass]="{
+                           'text-green-600': stats.totalGains >= 0,
+                           'text-red-600': stats.totalGains < 0
+                         }"></fa-icon>
+              </div>
+              <span class="text-lg font-medium text-gray-600 m-0">Total P&L</span>
+            </div>
+          </div>
+          <!-- Total Gains and Percentage in one line -->
+          <div class="flex items-center justify-between">
+            <div class="text-2xl md:text-2xl font-medium"
+                 [ngClass]="{
+                   'text-green-600': stats.totalGains >= 0,
+                   'text-red-600': stats.totalGains < 0
+                 }">
+              ₹{{ stats.totalGains | number:'1.2-2' }}
+            </div>
+
+            <span
+              class="text-sm rounded-md px-1 py-[1px]"
+              [ngClass]="{
+              'bg-green-50 text-green-600':  stats.totalGains > 0,
+              'bg-red-50 text-red-600':  stats.totalGains < 0
+              }"
+            >
+              <fa-icon [icon]="stats.totalGains >= 0 ? faArrowUp : faArrowDown" class="mr-1 text-xs"></fa-icon>
+              {{ stats.totalGainsPercent | percent:'1.2-2' }}
+            </span>
+
+          </div>
+          <!-- Today's Gains and Percentage in second line -->
+          <div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
+            <div class="text-base text-gray-600 font-medium">Day's P&L</div>
+            <div class="flex items-center gap-1">
+              <span class="text-base font-medium mr-2"
+                    [ngClass]="{
+                      'text-green-600': stats.todayGains >= 0,
+                      'text-red-600': stats.todayGains < 0,
+                      'text-gray-700': stats.todayGains === 0
+                    }">
+                ₹{{ stats.todayGains | number:'1.2-2' }}
+              </span>
+              <span
+                class="text-sm rounded-md px-1 py-[1px]"
+                [ngClass]="{
+              'bg-green-50 text-green-600':  stats.todayGains > 0,
+              'bg-red-50 text-red-600':  stats.todayGains < 0
+              }"
+              >
+              <fa-icon [icon]="stats.todayGainsPercent >= 0 ? faArrowUp : faArrowDown" class="mr-1 text-xs"></fa-icon>
+                {{ stats.todayGainsPercent | percent:'1.2-2' }}
+            </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Positions Overview -->
+      <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border-l-4 relative overflow-hidden group"
+           [class.cursor-pointer]="hasMultipleUsers()"
+           (click)="hasMultipleUsers() && showPositionsPnLDetails()"
+           [ngClass]="{
+             'border-purple-500': stats.totalPnL >= 0,
+             'border-gray-500': stats.totalPnL < 0
+           }">
+        <div class="absolute top-0 right-0 w-20 h-20 rounded-bl-full opacity-50 group-hover:opacity-70 transition-opacity"
+             [ngClass]="{
+               'bg-purple-50': stats.totalPnL >= 0,
+               'bg-gray-50': stats.totalPnL < 0
+             }"></div>
+        <div class="relative z-10">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center">
+              <div class="p-2 rounded-md mr-3"
+                   [ngClass]="{
+                     'bg-purple-100': stats.totalPnL >= 0,
+                     'bg-gray-100': stats.totalPnL < 0
+                   }">
+                <fa-icon [icon]="faChartBar"
+                         class="text-base"
+                         [ngClass]="{
+                           'text-purple-600': stats.totalPnL >= 0,
+                           'text-gray-600': stats.totalPnL < 0
+                         }"></fa-icon>
+              </div>
+              <span class="text-lg font-medium text-gray-600 m-0">Positions P&L</span>
+            </div>
+          </div>
+          <!-- Current P&L -->
+          <div class="flex items-center justify-between">
+            <div class="text-2xl md:text-2xl font-medium"
+                 [ngClass]="{
+                   'text-green-600': stats.totalPnL > 0,
+                   'text-red-600': stats.totalPnL < 0,
+                   'text-gray-700': stats.totalPnL === 0
+                 }">
+              ₹{{ stats.totalPnL | number:'1.2-2' }}
+            </div>
+
+          </div>
+          <!-- Max Profit in second line -->
+          <div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
+            <div class="text-base text-gray-600 font-medium">Max Profit</div>
+            <div class="flex items-center gap-1">
+              <span class="text-base font-medium text-gray-700">
+                ₹{{ stats.maxProfit | number:'1.2-2' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Trading Activity Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+
+      <!-- Mutual Fund Overview -->
+      <div class="bg-white p-4 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border-t-4 border-indigo-500 relative overflow-hidden group"
+           [class.cursor-pointer]="hasMultipleUsers()"
+           (click)="hasMultipleUsers() && showMutualFundsDetails()">
+        <div class="absolute bottom-0 left-0 w-24 h-24 bg-indigo-50 rounded-tr-full opacity-40 group-hover:opacity-60 transition-opacity"></div>
+        <div class="relative z-10">
+          <div class="flex items-center mb-2">
+            <div class="p-2 bg-indigo-100 rounded-md mr-2">
+              <fa-icon [icon]="faDollarSign" class="text-indigo-600 text-base"></fa-icon>
+            </div>
+            <span class="text-lg font-medium text-gray-600 m-0">Mutual Funds</span>
+          </div>
+          <div class="space-y-1.5 mt-2">
+            <div class="flex justify-between items-center cursor-pointer hover:bg-indigo-50 px-2 py-1 rounded-lg transition-all duration-200 group/item"
+                 (click)="navigateToPage('/mf')">
+              <span class="text-gray-600 text-base group-hover/item:text-indigo-700">Active SIPs</span>
+              <span class="font-medium text-gray-800  px-2 py-0.5 rounded-md text-base">{{ stats.activeSips }}</span>
+            </div>
+
+            <div class="flex justify-between items-center cursor-pointer hover:bg-indigo-50 px-2 py-1 rounded-lg transition-all duration-200 group/item"
+                 (click)="navigateToPage('/mf')">
+              <span class="text-gray-600 text-base group-hover/item:text-indigo-700">Total SIP Amount</span>
+              <span class="font-medium text-gray-800  px-2 py-0.5 rounded-md text-base">₹{{ stats.totalSipAmount | number:'1.0-0' }}</span>
+            </div>
+
+            <div class="flex justify-between items-center cursor-pointer hover:bg-indigo-50 px-2 py-1 rounded-lg transition-all duration-200 group/item"
+                 (click)="navigateToPage('/mf')">
+              <span class="text-gray-600 text-base group-hover/item:text-indigo-700">This Month Contribution</span>
+              <span class="font-medium text-gray-800  px-2 py-0.5 rounded-md text-base">₹{{ stats.contributionThisMonth | number:'1.0-0' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Orders & Trading -->
+      <div class="bg-white p-4 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border-t-4 border-orange-500 relative overflow-hidden group">
+        <div class="absolute bottom-0 left-0 w-24 h-24 bg-orange-50 rounded-tr-full opacity-40 group-hover:opacity-60 transition-opacity"></div>
+        <div class="relative z-10">
+          <div class="flex items-center mb-2">
+            <div class="p-2 bg-orange-100 rounded-md mr-2">
+              <fa-icon [icon]="faListCheck" class="text-orange-600 text-base"></fa-icon>
+            </div>
+            <span class="text-lg font-medium text-gray-600 m-0">Trading Activity</span>
+          </div>
+          <div class="space-y-1.5 mt-2">
+            <div class="flex justify-between items-center cursor-pointer hover:bg-orange-50 px-2 py-1 rounded-lg transition-all duration-200 group/item"
+                 (click)="navigateToPage('/positions')">
+              <span class="text-gray-600 text-base group-hover/item:text-orange-700">Open Positions</span>
+              <span class="font-medium text-gray-800  px-2 py-0.5 rounded-md text-base">{{ stats.openPositions }}</span>
+            </div>
+            <div class="flex justify-between items-center cursor-pointer hover:bg-orange-50 px-2 py-1 rounded-lg transition-all duration-200 group/item"
+                 (click)="navigateToPage('/orders')">
+              <span class="text-gray-600 text-base group-hover/item:text-orange-700">Open Orders</span>
+              <span class="font-medium text-gray-800  px-2 py-0.5 rounded-md text-base">{{ stats.openOrders }}</span>
+            </div>
+            <div class="flex justify-between items-center cursor-pointer hover:bg-orange-50 px-2 py-1 rounded-lg transition-all duration-200 group/item"
+                 (click)="navigateToPage('/ipos')">
+              <span class="text-gray-600 text-base group-hover/item:text-orange-700">Live IPOs</span>
+              <span class="font-medium text-gray-800  px-2 py-0.5 rounded-md text-base">{{ stats.openIpos }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Funds Overview -->
+      <div class="bg-white p-4 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border-t-4 border-green-500 relative overflow-hidden group"
+           [class.cursor-pointer]="hasMultipleUsers()"
+           (click)="hasMultipleUsers() && showFundsDetails()">
+        <div class="absolute bottom-0 left-0 w-24 h-24 bg-green-50 rounded-tr-full opacity-40 group-hover:opacity-60 transition-opacity"></div>
+        <div class="relative z-10">
+          <div class="flex items-center mb-2">
+            <div class="p-2 bg-green-100 rounded-md mr-2">
+              <fa-icon [icon]="faCoins" class="text-green-600 text-base"></fa-icon>
+            </div>
+            <span class="text-lg font-medium text-gray-600 m-0">Funds Overview</span>
+          </div>
+          <div class="space-y-1.5 mt-2">
+            <div class="flex justify-between items-center cursor-pointer hover:bg-red-50 px-2 py-1 rounded-lg transition-all duration-200 group/item"
+                 (click)="navigateToPage('/funds')">
+              <span class="text-gray-600 text-base group-hover/item:text-red-700">Utilized Funds</span>
+              <span class="font-medium text-red-600  px-2 py-0.5 rounded-md text-base">₹{{ stats.utilizedFunds | number:'1.2-2' }}</span>
+            </div>
+            <div class="flex justify-between items-center cursor-pointer hover:bg-green-50 px-2 py-1 rounded-lg transition-all duration-200 group/item"
+                 (click)="navigateToPage('/funds')">
+              <span class="text-gray-600 text-base group-hover/item:text-green-700">Available Margin</span>
+              <span class="font-medium text-gray-800  px-2 py-0.5 rounded-md text-base">₹{{ stats.availableFunds | number:'1.2-2' }}</span>
+            </div>
+            <div class="flex justify-between items-center cursor-pointer hover:bg-green-50 px-2 py-1 rounded-lg transition-all duration-200 group/item"
+                 (click)="navigateToPage('/funds')">
+              <span class="text-gray-600 text-base group-hover:item:text-green-700">Total Cash</span>
+              <span class="font-medium text-green-600  px-2 py-0.5 rounded-md text-base">₹{{ stats.totalCash | number:'1.2-2' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="bg-white p-4 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border-t-4 border-pink-500 relative overflow-hidden group">
+        <div class="absolute bottom-0 left-0 w-24 h-24 bg-pink-50 rounded-tr-full opacity-40 group-hover:opacity-60 transition-opacity"></div>
+        <div class="relative z-10">
+          <div class="flex items-center mb-2">
+            <div class="p-2 bg-pink-100 rounded-md mr-2">
+              <fa-icon [icon]="faBuilding" class="text-pink-600 text-base"></fa-icon>
+            </div>
+            <span class="text-lg font-medium text-gray-600 m-0">Quick Actions</span>
+          </div>
+          <div class="space-y-1.5 mt-2">
+            <div class="flex items-center cursor-pointer hover:bg-pink-50 px-2 py-1 rounded-lg transition-all duration-200 group/item"
+                 (click)="navigateToPage('/holdings')">
+              <div class="p-1 bg-green-100 rounded-md mr-2 group-hover/item:bg-green-200 transition-colors">
+                <fa-icon [icon]="faWallet" class="text-green-600 text-base"></fa-icon>
+              </div>
+              <span class="text-gray-700 text-base group-hover/item:text-pink-700">View Holdings</span>
+            </div>
+            <div class="flex items-center cursor-pointer hover:bg-pink-50 px-2 py-1 rounded-lg transition-all duration-200 group/item"
+                 (click)="navigateToPage('/positions')">
+              <div class="p-1 bg-blue-100 rounded-md mr-2 group-hover/item:bg-blue-200 transition-colors">
+                <fa-icon [icon]="faChartLine" class="text-blue-600 text-base"></fa-icon>
+              </div>
+              <span class="text-gray-700 text-base group-hover/item:text-pink-700">View Positions</span>
+            </div>
+            <div class="flex items-center cursor-pointer hover:bg-pink-50 px-2 py-1 rounded-lg transition-all duration-200 group/item"
+                 (click)="navigateToPage('/orders')">
+              <div class="p-1 bg-purple-100 rounded-md mr-2 group-hover/item:bg-purple-200 transition-colors">
+                <fa-icon [icon]="faListCheck" class="text-purple-600 text-base"></fa-icon>
+              </div>
+              <span class="text-gray-700 text-base group-hover/item:text-pink-700">View Orders</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Performance Summary -->
+    <div class="bg-white p-4 md:p-6 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border-t-4 border-gray-500 relative overflow-hidden group">
+      <div class="absolute bottom-0 left-0 w-24 h-24 bg-gray-50 rounded-tr-full opacity-40 group-hover:opacity-60 transition-opacity"></div>
+      <div class="flex items-center mb-3">
+        <span class="text-lg font-medium text-gray-600 m-0">Portfolio Performance</span>
+      </div>
+
+      <div [@expandCollapse]="showChart ? 'expanded' : 'collapsed'"
+           class="overflow-hidden transition-all duration-300">
+        <app-timeline-chart
+          [title]="''"
+          [xAxisLabels]="dateLabels"
+          [legendLabels]="legendLabels"
+          [series]="series"
+          [showDataZoom]="true"
+          [chartHeight]="'240'"
+        />
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- P&L Details Popup -->
+<app-pnl-details-popup
+  *ngIf="showPnLDetailsPopup"
+  [userData]="popupUserData"
+  [columns]="popupColumns"
+  [title]="popupTitle"
+  [sortByColumn]="popupSortByColumn"
+  (close)="closePnLDetailsPopup()"
+></app-pnl-details-popup>

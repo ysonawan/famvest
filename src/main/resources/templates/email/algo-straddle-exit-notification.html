@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #ffffff;
+            padding: 20px;
+        }
+        .title {
+            font-size: 20px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            padding: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
+        }
+        .label {
+            font-weight: bold;
+            color: #444;
+            display: inline-block;
+            min-width: 160px;
+        }
+        .value {
+            color: #222;
+        }
+        .pnl-positive {
+            color: green;
+            font-weight: bold;
+        }
+        .pnl-negative {
+            color: red;
+            font-weight: bold;
+        }
+        @media (max-width: 600px) {
+            .label, .value {
+                display: block;
+                margin-bottom: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <p>Hello <strong th:text="${userName}">Trader</strong>,</p>
+    <p>Your straddle position has been <strong>closed</strong>. Summary below:</p>
+
+    <div class="title">Straddle Exit Summary</div>
+    <div class="card">
+        <div><span class="label">Execution Date:</span>
+            <span class="value" th:text="${execution.executionDate}">2025-07-31</span>
+        </div>
+        <div><span class="label">Exited At:</span>
+            <span class="value" th:text="${execution.exitedAt}">2025-07-31T15:30:00</span>
+        </div>
+        <div><span class="label">Run ID:</span>
+            <span class="value" th:text="${execution.uniqueRunId}">abc123-456</span>
+        </div>
+        <div><span class="label">Instrument:</span>
+            <span class="value" th:text="${execution.instrument}">NIFTY</span>
+        </div>
+        <div><span class="label">Call Strike:</span>
+            <span class="value" th:text="${execution.callStrike}">17500</span>
+        </div>
+        <div><span class="label">Call Quantity:</span>
+            <span class="value" th:text="${execution.callQuantity}">75</span>
+        </div>
+        <div><span class="label">Call Entry Price:</span>
+            <span class="value" th:text="${#numbers.formatDecimal(execution.callEntryPrice, 0, 2)}">0.00</span>
+        </div>
+        <div><span class="label">Call Exit Price:</span>
+            <span class="value" th:text="${#numbers.formatDecimal(execution.callExitPrice, 0, 2)}">0.00</span>
+        </div>
+        <div><span class="label">Put Strike:</span>
+            <span class="value" th:text="${execution.putStrike}">17450</span>
+        </div>
+        <div><span class="label">Put Quantity:</span>
+            <span class="value" th:text="${execution.putQuantity}">75</span>
+        </div>
+        <div><span class="label">Put Entry Price:</span>
+            <span class="value" th:text="${#numbers.formatDecimal(execution.putEntryPrice, 0, 2)}">0.00</span>
+        </div>
+        <div><span class="label">Put Exit Price:</span>
+            <span class="value" th:text="${#numbers.formatDecimal(execution.putExitPrice, 0, 2)}">0.00</span>
+        </div>
+        <div>
+            <span class="label">Exit P&L:</span>
+            <span class="value" th:text="'₹ ' + ${#numbers.formatDecimal(execution.exitPnl, 0, 2)}" th:classappend="${execution.exitPnl >= 0} ? ' pnl-positive' : ' pnl-negative'">>₹ 0.00</span>
+        </div>
+        <div><span class="label">Paper Trade?:</span>
+            <span class="value" th:text="${execution.paperTrade}">true</span>
+        </div>
+    </div>
+
+    <p>Regards,<br/>The FamVest App Team</p>
+</div>
+</body>
+</html>

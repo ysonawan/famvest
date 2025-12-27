@@ -1,0 +1,41 @@
+<div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-4 mb-2 w-full">
+<div
+    class="bg-white p-2 border rounded-md shadow-sm flex flex-col items-center justify-center text-center min-h-16"
+    *ngIf="totalBuyOrders !== undefined"
+  >
+    <span class="text-xs text-gray-500 uppercase tracking-wide">Total Buy Orders</span>
+    <span class="text-base font-medium text-gray-700 mt-1">
+      {{ totalBuyOrders | number:'1.0-0' }}
+    </span>
+  </div>
+
+  <div
+    class="bg-white p-2 border rounded-md shadow-sm flex flex-col items-center justify-center text-center min-h-16"
+    *ngIf="totalBuyAmount !== undefined"
+  >
+    <span class="text-xs text-gray-500 uppercase tracking-wide">Total Buy Amount</span>
+    <span class="text-base font-medium text-gray-700 mt-1">
+      {{ totalBuyAmount | currency:'INR':'symbol':'1.0-0' }}
+    </span>
+  </div>
+
+  <div
+    class="bg-white p-2 border rounded-md shadow-sm flex flex-col items-center justify-center text-center min-h-16"
+    *ngIf="totalSellOrders !== undefined"
+  >
+    <span class="text-xs text-gray-500 uppercase tracking-wide">Total Sell Orders</span>
+    <span class="text-base font-medium text-gray-700 mt-1">
+      {{ totalSellOrders | number:'1.0-0' }}
+    </span>
+  </div>
+
+  <div
+    class="bg-white p-2 border rounded-md shadow-sm flex flex-col items-center justify-center text-center min-h-16"
+    *ngIf="totalSellAmount !== undefined"
+  >
+    <span class="text-xs text-gray-500 uppercase tracking-wide">Total Sell Amount</span>
+    <span class="text-base font-medium text-gray-700 mt-1">
+      {{ totalSellAmount | currency:'INR':'symbol':'1.0-0' }}
+    </span>
+  </div>
+</div>

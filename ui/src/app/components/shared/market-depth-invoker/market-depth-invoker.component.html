@@ -1,0 +1,14 @@
+@if (iconBackground) {
+  <app-action-button
+  [matTooltip]="'Market Depth'"
+  [action]="'list'"
+  [color]="'gray'"
+  (handleAction)="handleAction()"
+  ></app-action-button>
+} @else {
+  <fa-icon [matTooltip]="'Market Depth'" (click)="handleAction()" [icon]="faList"
+           class="cursor-pointer ml-2"
+           [ngClass]="getTextStyle()"
+  ></fa-icon>
+}
+

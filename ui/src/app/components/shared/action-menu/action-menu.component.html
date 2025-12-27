@@ -1,0 +1,29 @@
+<!-- Kebab button -->
+<div class="flex w-full px-0 text-sm">
+  <!-- Kebab button aligned to right -->
+  <button
+    class="ml-auto !p-0 !m-0 leading-none flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-md transition duration-150 ease-in-out"
+    [matMenuTriggerFor]="menu"
+  >
+    <fa-icon [icon]="faEllipsisV" class="ml-4 mr-2 text-gray-600"></fa-icon>
+  </button>
+
+
+</div>
+<!-- Dropdown Menu -->
+<mat-menu #menu="matMenu" class="!min-w-[8rem] rounded-md shadow-sm">
+  <ng-container *ngFor="let action of actions; let i = index">
+    <div class="hover:bg-gray-50 transition rounded-md text-sm">
+      <app-action-button
+        [noIconBackground]="true"
+        [label]="action.label"
+        [action]="action.action"
+        [color]="action.color"
+        [row]="row"
+        (handleAction)="handleClick($event)"
+      ></app-action-button>
+    </div>
+
+    <div *ngIf="i < actions.length - 1" class="border-t border-gray-200 mx-2 my-1"></div>
+  </ng-container>
+</mat-menu>

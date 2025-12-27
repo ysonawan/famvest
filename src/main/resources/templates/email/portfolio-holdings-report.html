@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: #ffffff;
+            padding: 20px;
+        }
+
+        h2 {
+            font-size: 20px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        p {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .section-title {
+            font-weight: bold;
+            font-size: 18px;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            color: #222;
+        }
+
+        .description {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .card {
+            border-top: 1px solid #ddd;
+            padding: 15px 0;
+        }
+
+        .instrument {
+            color: #007bff;
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        /* NEW: row layout for label/value pairs */
+        .row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .label {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .value {
+            font-size: 14px;
+            color: #000;
+        }
+
+        .positive {
+            color: green;
+            font-weight: bold;
+        }
+
+        .negative {
+            color: red;
+            font-weight: bold;
+        }
+
+        .italic {
+            font-style: italic;
+            color: #555;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+        }
+
+        .highlight {
+            background-color: #e7f3ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #007bff;
+        }
+
+        .highlight p {
+            margin: 0;
+            font-weight: bold;
+            color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <p>Hello <strong th:text="${fullName}">Investor</strong>,</p>
+    <p>We don’t want you to miss a single movement – here’s a quick overview of your portfolio's performance during this period.</p>
+    <div class="highlight">
+        <p th:text="'Report Period: ' + ${dateRange}">Report Period: Date Range</p>
+    </div>
+    <!-- Summary -->
+    <div>
+        <div class="section-title">Summary</div>
+        <div class="row">
+            <span class="label">Invested:</span>
+            <span class="value" th:text="'₹ ' + ${#numbers.formatDecimal(totalInvestedAmount, 0, 2)}">₹ 0.00</span>
+        </div>
+        <div class="row">
+            <span class="label">Current:</span>
+            <span class="value" th:text="'₹ ' + ${#numbers.formatDecimal(totalCurrentAmount, 0, 2)}">₹ 0.00</span>
+        </div>
+        <div class="row">
+            <span class="label">Period P/L:</span>
+            <span th:if="${totalPeriodProfit >= 0}" class="value positive"
+                  th:text="'₹ ' + ${#numbers.formatDecimal(totalPeriodProfit, 0, 2)} + ' (' + ${#numbers.formatDecimal(totalPeriodProfitPercentage, 0, 2)} + '%)'"></span>
+            <span th:unless="${totalPeriodProfit >= 0}" class="value negative"
+                  th:text="'₹ ' + ${#numbers.formatDecimal(totalPeriodProfit, 0, 2)} + ' (' + ${#numbers.formatDecimal(totalPeriodProfitPercentage, 0, 2)} + '%)'"></span>
+        </div>
+        <div class="row">
+            <span class="label">Total P/L:</span>
+            <span th:if="${netProfit >= 0}" class="value positive"
+                  th:text="'₹ ' + ${#numbers.formatDecimal(netProfit, 0, 2)} + ' (' + ${#numbers.formatDecimal(netProfitPercentage, 0, 2)} + '%)'"></span>
+            <span th:unless="${netProfit >= 0}" class="value negative"
+                  th:text="'₹ ' + ${#numbers.formatDecimal(netProfit, 0, 2)} + ' (' + ${#numbers.formatDecimal(netProfitPercentage, 0, 2)} + '%)'"></span>
+        </div>
+    </div>
+    <div>
+        <div class="section-title">Open Positions</div>
+        <div th:each="report : ${ongoingList}" class="card">
+            <div class="instrument" th:text="${report.instrument}">Instrument Name</div>
+            <div class="row">
+                <span class="label">Invested:</span>
+                <span class="value" th:text="'₹ ' + ${#numbers.formatDecimal(report.investedAmount, 0, 2)}">₹ 0.00</span>
+            </div>
+            <div class="row">
+                <span class="label">Current:</span>
+                <span class="value" th:text="'₹ ' + ${#numbers.formatDecimal(report.currentValue, 0, 2)}">₹ 0.00</span>
+            </div>
+            <div class="row">
+                <span class="label">Period P/L:</span>
+                <span th:if="${report.changeInValueFromLastPeriod >= 0}" class="value positive"
+                      th:text="'₹ ' + ${#numbers.formatDecimal(report.changeInValueFromLastPeriod, 0, 2)} + ' (' + ${#numbers.formatDecimal(report.changeInValueFromLastPeriodPercentage, 0, 2)} + '%)'"></span>
+                <span th:unless="${report.changeInValueFromLastPeriod >= 0}" class="value negative"
+                      th:text="'₹ ' + ${#numbers.formatDecimal(report.changeInValueFromLastPeriod, 0, 2)} + ' (' + ${#numbers.formatDecimal(report.changeInValueFromLastPeriodPercentage, 0, 2)} + '%)'"></span>
+            </div>
+            <div class="row">
+                <span class="label">Total P/L:</span>
+                <span th:if="${report.netProfitToday >= 0}" class="value positive"
+                      th:text="'₹ ' + ${#numbers.formatDecimal(report.netProfitToday, 0, 2)} + ' (' + ${#numbers.formatDecimal(report.netProfitTodayPercentage, 0, 2)} + '%)'"></span>
+                <span th:unless="${report.netProfitToday >= 0}" class="value negative"
+                      th:text="'₹ ' + ${#numbers.formatDecimal(report.netProfitToday, 0, 2)} + ' (' + ${#numbers.formatDecimal(report.netProfitTodayPercentage, 0, 2)} + '%)'"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Positions -->
+    <div>
+        <div class="section-title">New Positions</div>
+        <div th:if="${!newList.isEmpty()}" class="description">These positions were added during this period.</div>
+        <div th:if="${newList.isEmpty()}" class="italic">No new positions during this period.</div>
+
+        <div th:each="report : ${newList}" class="card">
+            <div class="instrument" th:text="${report.instrument}">Instrument Name</div>
+            <div class="row">
+                <span class="label">Invested:</span>
+                <span class="value" th:text="'₹ ' + ${#numbers.formatDecimal(report.investedAmount, 0, 2)}">₹ 0.00</span>
+            </div>
+            <div class="row">
+                <span class="label">Current:</span>
+                <span class="value" th:text="'₹ ' + ${#numbers.formatDecimal(report.currentValue, 0, 2)}">₹ 0.00</span>
+            </div>
+            <div class="row">
+                <span class="label">Total P/L:</span>
+                <span th:if="${report.netProfitToday >= 0}" class="value positive"
+                      th:text="'₹ ' + ${#numbers.formatDecimal(report.netProfitToday, 0, 2)} + ' (' + ${#numbers.formatDecimal(report.netProfitTodayPercentage, 0, 2)} + '%)'"></span>
+                <span th:unless="${report.netProfitToday >= 0}" class="value negative"
+                      th:text="'₹ ' + ${#numbers.formatDecimal(report.netProfitToday, 0, 2)} + ' (' + ${#numbers.formatDecimal(report.netProfitTodayPercentage, 0, 2)} + '%)'"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Closed Positions -->
+    <div>
+        <div class="section-title">Closed Positions</div>
+        <div th:if="${!closedList.isEmpty()}" class="description">These are the positions you exited during this period.</div>
+        <div th:if="${closedList.isEmpty()}" class="italic">No closed positions during this period.</div>
+
+        <div th:each="report : ${closedList}" class="card">
+            <div class="instrument" th:text="${report.instrument}">Instrument Name</div>
+            <div class="row">
+                <span class="label">Invested:</span>
+                <span class="value" th:text="'₹ ' + ${#numbers.formatDecimal(report.investedAmount, 0, 2)}">₹ 0.00</span>
+            </div>
+            <div class="row">
+                <span class="label">Exit:</span>
+                <span class="value" th:text="'₹ ' + ${#numbers.formatDecimal(report.currentValue, 0, 2)}">₹ 0.00</span>
+            </div>
+            <div class="row">
+                <span class="label">Total P/L:</span>
+                <span th:if="${report.netProfitToday >= 0}" class="value positive"
+                      th:text="'₹ ' + ${#numbers.formatDecimal(report.netProfitToday, 0, 2)} + ' (' + ${#numbers.formatDecimal(report.netProfitTodayPercentage, 0, 2)} + '%)'"></span>
+                <span th:unless="${report.netProfitToday >= 0}" class="value negative"
+                      th:text="'₹ ' + ${#numbers.formatDecimal(report.netProfitToday, 0, 2)} + ' (' + ${#numbers.formatDecimal(report.netProfitTodayPercentage, 0, 2)} + '%)'"></span>
+            </div>
+        </div>
+    </div>
+    <p>
+        <a class="button" th:href="@{${appUrl}}">View Complete Portfolio</a>
+    </p>
+    <p style="margin-top: 30px;">Regards,<br/>Trading Insights Team</p>
+</div>
+</body>
+</html>

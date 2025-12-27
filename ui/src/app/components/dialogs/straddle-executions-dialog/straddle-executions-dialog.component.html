@@ -1,0 +1,168 @@
+<div
+  cdkDrag
+  cdkDragRootElement=".cdk-overlay-pane"
+  class="flex flex-col h-full w-full rounded-md shadow-sm overflow-hidden text-gray-700 bg-white"
+>
+  <!-- Header -->
+  <div cdkDragHandle class="flex items-center justify-between px-4 py-3 border-b cursor-move flex-shrink-0">
+    <span class="text-lg font-medium text-gray-600">Execution History - {{ strategyName }}</span>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="px-6 py-4 bg-gray-50 border-b flex-shrink-0">
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+      <div class="bg-white rounded-md p-3 shadow-sm">
+        <div class="text-xs text-gray-500 uppercase font-medium">Total</div>
+        <div class="text-lg font-medium text-gray-800 mt-1">{{ summary.totalExecutions }}</div>
+      </div>
+      <div class="bg-white rounded-md p-3 shadow-sm">
+        <div class="text-xs text-gray-500 uppercase font-medium">Wins</div>
+        <div class="text-lg font-medium text-green-600 mt-1">{{ summary.profitableExecutions }}</div>
+      </div>
+      <div class="bg-white rounded-md p-3 shadow-sm">
+        <div class="text-xs text-gray-500 uppercase font-medium">Losses</div>
+        <div class="text-lg font-medium text-red-600 mt-1">{{ summary.lossExecutions }}</div>
+      </div>
+      <div class="bg-white rounded-md p-3 shadow-sm">
+        <div class="text-xs text-gray-500 uppercase font-medium">Total P&L</div>
+        <div class="text-lg font-medium mt-1" [ngClass]="getPnlClass(summary.totalPnl)">
+          {{ formatCurrency(summary.totalPnl) }}
+        </div>
+      </div>
+      <div class="bg-white rounded-md p-3 shadow-sm">
+        <div class="text-xs text-gray-500 uppercase font-medium">Total Profit</div>
+        <div class="text-lg font-medium text-green-600 mt-1">{{ formatCurrency(summary.totalProfit) }}</div>
+      </div>
+      <div class="bg-white rounded-md p-3 shadow-sm">
+        <div class="text-xs text-gray-500 uppercase font-medium">Total Loss</div>
+        <div class="text-lg font-medium text-red-600 mt-1">{{ formatCurrency(summary.totalLoss) }}</div>
+      </div>
+      <div class="bg-white rounded-md p-3 shadow-sm">
+        <div class="text-xs text-gray-500 uppercase font-medium">Win Rate</div>
+        <div class="text-lg font-medium text-blue-600 mt-1">{{ summary.winRate.toFixed(1) }}%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="px-6 py-4 bg-white border-b flex-shrink-0">
+    <div class="flex flex-wrap gap-4 items-center">
+      <div class="flex items-center gap-2">
+        <label class="text-sm font-medium text-gray-700">Show:</label>
+        <select
+          [(ngModel)]="profitLossFilter"
+          (change)="onFilterChange()"
+          class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+          <option value="all">All Executions</option>
+          <option value="profit">Only Profits</option>
+          <option value="loss">Only Losses</option>
+        </select>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <label class="text-sm font-medium text-gray-700">Type:</label>
+        <select
+          [(ngModel)]="typeFilter"
+          (change)="onFilterChange()"
+          class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+          <option value="all">All Types</option>
+          <option value="live">Live Only</option>
+          <option value="paper">Paper Only</option>
+        </select>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <label class="text-sm font-medium text-gray-700">Month:</label>
+        <select
+          [(ngModel)]="selectedMonth"
+          (change)="onFilterChange()"
+          class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+          <option value="all">All Months</option>
+          <option *ngFor="let month of availableMonths" [value]="month">
+            {{ getMonthLabel(month) }}
+          </option>
+        </select>
+      </div>
+
+      <div class="ml-auto text-sm text-gray-600">
+        Showing <span class="font-semibold">{{ filteredExecutions.length }}</span> of <span class="font-semibold">{{ executions.length }}</span> executions
+      </div>
+    </div>
+  </div>
+
+  <!-- Body - Executions Table with proper scrolling -->
+  <div class="flex-1 min-h-0 overflow-auto px-6 py-4">
+    <div *ngIf="isLoading" class="flex items-center justify-center py-12">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+    </div>
+
+    <div *ngIf="!isLoading && filteredExecutions.length === 0" class="text-center py-12">
+      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+      </svg>
+      <p class="mt-2 text-sm text-gray-600">No executions found matching the selected filters.</p>
+    </div>
+
+    <div *ngIf="!isLoading && filteredExecutions.length > 0" class="rounded-md border border-gray-200 overflow-auto max-h-[60vh]">
+      <table class="w-full text-sm text-left">
+        <thead class="bg-gray-100 text-gray-700 uppercase text-xs sticky top-0 z-10">
+          <tr>
+            <th class="px-4 py-3 font-semibold whitespace-nowrap">Type</th>
+            <th class="px-4 py-3 font-semibold whitespace-nowrap">Date</th>
+            <th class="px-4 py-3 font-semibold whitespace-nowrap">Entry Time</th>
+            <th class="px-4 py-3 font-semibold whitespace-nowrap">Exit Time</th>
+            <th class="px-4 py-3 font-semibold whitespace-nowrap">CE Strike</th>
+            <th class="px-4 py-3 font-semibold whitespace-nowrap">PE Strike</th>
+            <th class="px-4 py-3 font-semibold whitespace-nowrap">CE Entry Price</th>
+            <th class="px-4 py-3 font-semibold whitespace-nowrap">CE Exit Price</th>
+            <th class="px-4 py-3 font-semibold whitespace-nowrap">PE Entry Price</th>
+            <th class="px-4 py-3 font-semibold whitespace-nowrap">PE Exit Price</th>
+            <th class="px-4 py-3 font-semibold whitespace-nowrap">P&L</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          <tr *ngFor="let execution of filteredExecutions; let i = index"
+              class="hover:bg-gray-50 transition-colors"
+              [ngClass]="{'bg-green-50': execution.exitPnl > 0, 'bg-red-50': execution.exitPnl < 0}">
+
+            <td class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">
+              <app-small-chip
+                [text]="getTradeType(execution)"
+                [color]="getTradeTypeChipColor(execution)">
+              </app-small-chip>
+            </td>
+            <td class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">{{ formatDate(execution.executionDate) }}</td>
+            <td class="px-4 py-3 text-gray-700 whitespace-nowrap">{{ (execution.createdAt | istDate: 'time-no-mod') || '-' }}</td>
+            <td class="px-4 py-3 text-gray-700 whitespace-nowrap">{{ (execution.exitedAt | istDate: 'time-no-mod') || '-' }}</td>
+            <td class="px-4 py-3 text-gray-700 whitespace-nowrap">{{ execution.callStrike || '-' }}</td>
+            <td class="px-4 py-3 text-gray-700 whitespace-nowrap">{{ execution.putStrike || '-' }}</td>
+            <td class="px-4 py-3 text-gray-700 whitespace-nowrap">{{ formatCurrency(execution.callEntryPrice) }}</td>
+            <td class="px-4 py-3 text-gray-700 whitespace-nowrap">{{ formatCurrency(execution.callExitPrice) }}</td>
+            <td class="px-4 py-3 text-gray-700 whitespace-nowrap">{{ formatCurrency(execution.putEntryPrice) }}</td>
+            <td class="px-4 py-3 text-gray-700 whitespace-nowrap">{{ formatCurrency(execution.putExitPrice) }}</td>
+            <td class="px-4 py-3 whitespace-nowrap" [ngClass]="getPnlClass(execution.exitPnl)">
+              {{ formatCurrency(execution.exitPnl) }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div cdkDragHandle class="flex justify-between items-center px-4 py-3 border-t cursor-move flex-shrink-0">
+    <div class="text-sm text-gray-600 uppercase">
+      Average P&L: <span class="font-medium" [ngClass]="getPnlClass(summary.avgPnl)">{{ formatCurrency(summary.avgPnl) }}</span>
+    </div>
+    <button
+      (click)="onClose()"
+      class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100 text-sm"
+    >
+      Close
+    </button>
+  </div>
+</div>
+

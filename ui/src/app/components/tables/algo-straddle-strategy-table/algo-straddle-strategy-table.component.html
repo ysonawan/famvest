@@ -1,0 +1,191 @@
+<div class="w-full bg-white border border-gray-200 rounded-md shadow-sm">
+  @if (!groupedStraddles || groupedStraddles.length === 0) {
+    <div class="flex items-center justify-center py-12 px-4">
+      <p class="text-gray-500 text-center">No straddles to display</p>
+    </div>
+  } @else {
+    <!-- Table View -->
+    <div>
+      <table class="w-full border-collapse">
+        <thead class="sticky top-0 z-20 bg-gray-100 shadow-sm">
+        <tr class="text-left text-sm font-semibold text-gray-700 uppercase tracking-wider bg-gray-100 border-b border-gray-300">
+          <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left">
+            <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setSort('side')">
+              SIDE
+              <span class="text-[10px]" *ngIf="getSortIndicator('side')">{{ getSortIndicator('side') }}</span>
+            </button>
+          </th>
+          <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left">
+            <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setSort('instrument')">
+              INSTRUMENT
+              <span class="text-[10px]" *ngIf="getSortIndicator('instrument')">{{ getSortIndicator('instrument') }}</span>
+            </button>
+          </th>
+
+          <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left">
+            <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setSort('expiryScope')">
+              EXPIRY
+              <span class="text-[10px]" *ngIf="getSortIndicator('expiryScope')">{{ getSortIndicator('expiryScope') }}</span>
+            </button>
+          </th>
+          <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left">
+            <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setSort('underlyingStrikeSelector')">
+              STRIKE SELECTOR
+              <span class="text-[10px]" *ngIf="getSortIndicator('underlyingStrikeSelector')">{{ getSortIndicator('underlyingStrikeSelector') }}</span>
+            </button>
+          </th>
+          <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left">
+            <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setSort('lots')">
+              LOTS
+              <span class="text-[10px]" *ngIf="getSortIndicator('lots')">{{ getSortIndicator('lots') }}</span>
+            </button>
+          </th>
+          <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left">
+            <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setSort('entryTime')">
+              ENTRY TIME
+              <span class="text-[10px]" *ngIf="getSortIndicator('entryTime')">{{ getSortIndicator('entryTime') }}</span>
+            </button>
+          </th>
+          <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left">
+            <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setSort('exitTime')">
+              EXIT TIME
+              <span class="text-[10px]" *ngIf="getSortIndicator('exitTime')">{{ getSortIndicator('exitTime') }}</span>
+            </button>
+          </th>
+
+          <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-right">
+            <button type="button" class="flex items-center gap-1 w-full justify-end" (click)="setSort('target')">
+              TARGET
+              <span class="text-[10px]" *ngIf="getSortIndicator('target')">{{ getSortIndicator('target') }}</span>
+            </button>
+          </th>
+          <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-right">
+            <button type="button" class="flex items-center gap-1 w-full justify-end" (click)="setSort('stopLoss')">
+              STOP LOSS
+              <span class="text-[10px]" *ngIf="getSortIndicator('stopLoss')">{{ getSortIndicator('stopLoss') }}</span>
+            </button>
+          </th>
+          <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left">
+            <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setSort('status')">
+              STATUS
+              <span class="text-[10px]" *ngIf="getSortIndicator('status')">{{ getSortIndicator('status') }}</span>
+            </button>
+          </th>
+          <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left">
+            <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setSort('tradeType')">
+              TRADE TYPE
+              <span class="text-[10px]" *ngIf="getSortIndicator('tradeType')">{{ getSortIndicator('tradeType') }}</span>
+            </button>
+          </th>
+          <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-center">ACTIONS</th>
+        </tr>
+        </thead>
+        <tbody class="bg-white">
+        <ng-container *ngFor="let group of sortedGroupedStraddles; let isLast = last; trackBy: trackByUser">
+
+          <!-- User Header Row -->
+          <tr class="border-b border-gray-200 text-gray-700 text-sm md:text-sm">
+            <td colspan="12" class="px-2 md:px-4 whitespace-nowrap">
+              <app-user-info-header
+                [userId]="group.userId"
+                [userName]="group.userName || group.userId"
+                [fullName]="group.fullName || group.userName"
+                [avatarUrl]="group.avatarUrl"
+                [fallbackAvatarUrl]="fallbackAvatarUrl">
+              </app-user-info-header>
+            </td>
+          </tr>
+
+          <!-- Straddle Rows -->
+          <ng-container *ngFor="let straddle of group.straddles; trackBy: trackById">
+            <tr class="border-b border-gray-200 text-sm text-gray-700 hover:bg-blue-50 transition-colors duration-150">
+
+              <!-- Side -->
+              <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">
+                <app-small-chip
+                  [text]="straddle.side"
+                  [color]="getStraddleSideChipColor(straddle.side)">
+                </app-small-chip>
+              </td>
+              <!-- Instrument -->
+              <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">
+                <span class="text-gray-700">{{ straddle.instrument }}</span>
+              </td>
+
+              <!-- Expiry -->
+              <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">
+                <span class="text-gray-700">{{ straddle.expiryScope }}</span>
+              </td>
+
+              <!-- strike selector  -->
+              <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap  text-sm">
+                {{ straddle.underlyingStrikeSelector }}
+              </td>
+
+              <!-- lots  -->
+              <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap  text-sm">
+                {{ straddle.lots }}
+              </td>
+
+              <!-- Entry Time -->
+              <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap  text-sm">
+                {{ straddle.entryTime | istDate:'time-no-mod' }}
+              </td>
+
+              <!-- Exit Time -->
+              <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap  text-sm">
+                {{ straddle.exitTime | istDate:'time-no-mod' }}
+              </td>
+
+              <!-- Target -->
+              <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+                <span class="text-green-600">{{ straddle.target | currency:'INR':'symbol':'1.0-0' }}</span>
+              </td>
+
+              <!-- Stop Loss -->
+              <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+                          <span class="text-red-600">
+                            {{ straddle.stopLoss | currency:'INR':'symbol':'1.0-0' }}
+                            <span class="text-blue-600 text-xs" *ngIf="straddle.trailingSl">TSL</span>
+                          </span>
+              </td>
+
+              <!-- Status -->
+              <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">
+                <app-small-chip
+                  [text]="straddle.isActive? 'ACTIVE' : 'PAUSED'"
+                  [color]="getStatusChipColor(straddle)">
+                </app-small-chip>
+              </td>
+
+              <!-- Trade Type -->
+              <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">
+                <app-small-chip
+                  [text]="getTradeType(straddle)"
+                  [color]="getTradeTypeChipColor(straddle)">
+                </app-small-chip>
+              </td>
+
+              <!-- Actions -->
+              <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+                <app-action-menu
+                  [row]="straddle"
+                  [actions]="getActionButtons(straddle)"
+                  (handleAction)="handleAction($event)">
+                </app-action-menu>
+              </td>
+            </tr>
+          </ng-container>
+
+          <!-- User Separator -->
+          <tr *ngIf="!isLast">
+            <td colspan="12" class="py-1">
+              <div class="border-b border-dashed border-gray-100"></div>
+            </td>
+          </tr>
+        </ng-container>
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

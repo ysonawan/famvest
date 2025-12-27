@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f4f4f4;
+        margin: 0;
+        padding: 0;
+    }
+
+    .container {
+        max-width: 600px;
+        margin: auto;
+        background: #ffffff;
+        padding: 20px;
+    }
+
+    h2 {
+        font-size: 20px;
+        color: #2c3e50;
+        margin-bottom: 10px;
+    }
+
+    p {
+        font-size: 14px;
+        color: #333;
+        line-height: 1.5;
+    }
+
+    .section-title {
+        font-weight: bold;
+        font-size: 18px;
+        margin-top: 25px;
+        margin-bottom: 10px;
+        color: #222;
+    }
+
+    .description {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 10px;
+    }
+
+    .card {
+        border-top: 1px solid #ddd;
+        padding: 15px 0;
+    }
+
+    .instrument {
+        color: #007bff;
+        font-weight: bold;
+        font-size: 14px;
+        margin-bottom: 5px;
+    }
+
+    /* NEW: row layout for label/value pairs */
+    .row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 6px;
+    }
+
+    .label {
+        font-weight: bold;
+        color: #333;
+    }
+
+    .value {
+        font-size: 14px;
+        color: #000;
+    }
+
+    .positive {
+        color: green;
+        font-weight: bold;
+    }
+
+    .negative {
+        color: red;
+        font-weight: bold;
+    }
+
+    .italic {
+        font-style: italic;
+        color: #555;
+        margin-bottom: 10px;
+    }
+
+    @media (max-width: 600px) {
+        .container {
+            padding: 10px;
+        }
+    }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2 th:text="${subject}">Monthly Mutual Fund SIP Summary</h2>
+
+    <!-- Greeting and Introduction -->
+    <p>Hello <strong th:text="${fullName}">Investor</strong>,</p>
+    <p>We don’t want you to miss a single update — here’s your latest overview of ongoing SIPs and mutual fund activity, including recent orders and performance highlights.</p>
+
+    <!-- SIP Summary Row -->
+    <div class="card">
+        <div class="section-title">Summary</div>
+        <div class="row">
+            <span class="label">Total SIP Amount:</span>
+            <span class="value" th:text="'₹ ' + ${#numbers.formatDecimal(totalSipAmount, 0, 2)}">₹ 0.00</span>
+        </div>
+        <div class="row">
+            <span class="label">Active SIPs:</span>
+            <span class="value" th:text="${activeSipCount}">0</span>
+        </div>
+        <div class="row">
+            <span class="label">Paused SIPs:</span>
+            <span class="value" th:text="${pausedSipCount}">0</span>
+        </div>
+    </div>
+    <!-- Current SIPs Section -->
+    <div>
+        <div class="section-title">Current SIPs</div>
+        <div class="description">
+            Stay on top of your mutual fund SIPs — here’s a quick summary of your ongoing and paused investments.
+        </div>
+        <div th:if="${sipList.isEmpty()}" class="italic">No active or paused SIPs found.</div>
+
+        <div th:each="sip : ${sipList}" class="card">
+            <div class="instrument" th:text="${sip.mfSip.fund}">Fund Name</div>
+
+            <div class="row">
+                <span class="label">Status:</span>
+                <span class="value" th:text="${sip.mfSip.status}">UNKNOWN</span>
+            </div>
+            <div class="row">
+                <span class="label">Amount:</span>
+                <span class="value" th:text="'₹ ' + ${#numbers.formatDecimal(sip.mfSip.instalmentAmount, 0, 2)}">₹ 0.00</span>
+            </div>
+            <div class="row">
+                <span class="label">Last NAV:</span>
+                <span class="value" th:text="${#numbers.formatDecimal(sip.lastPrice, 0, 2)} + ' (' + ${#numbers.formatDecimal(sip.dayChangePercentage, 0, 2)} + '%)'"></span>
+            </div>
+            <div class="row">
+                <span class="label">Created On:</span>
+                <span class="value" th:text="${#dates.format(sip.mfSip.created, 'dd MMM yyyy')}">01 Jan 9999</span>
+            </div>
+            <div class="row">
+                <span class="label">Last Executed:</span>
+                <span class="value" th:text="${#dates.format(sip.mfSip.lastInstalment, 'dd MMM yyyy')}">10 Jun 9999</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Last Month MF Orders Section -->
+    <div>
+        <div class="section-title">Last Month Mutual Fund Orders</div>
+        <div class="description">
+            A recap of all your mutual fund transactions from last month — review your activity below.
+        </div>
+        <div th:if="${orderList.isEmpty()}" class="italic">No mutual fund orders placed last month.</div>
+
+        <div th:each="order : ${orderList}" class="card">
+            <div class="instrument" th:text="${order.mfOrder.fund}">Fund Name</div>
+            <div class="row">
+                <span class="label">Status:</span>
+                <span class="value" th:text="${order.mfOrder.status}">UNKNOWN</span>
+            </div>
+            <div class="row">
+                <span class="label">Order Type:</span>
+                <span class="value" th:text="${order.mfOrder.transactionType}">Buy</span>
+            </div>
+            <div class="row">
+                <span class="label">Amount:</span>
+                <span class="value" th:text="'₹ ' + ${#numbers.formatDecimal(order.mfOrder.amount, 0, 2)}">₹ 0.00</span>
+            </div>
+            <div class="row">
+                <span class="label">Quantity:</span>
+                <span class="value" th:text="${order.mfOrder.quantity}">0</span>
+            </div>
+            <div class="row">
+                <span class="label">Avg. Price:</span>
+                <span class="value" th:text="${#numbers.formatDecimal(order.mfOrder.averagePrice, 0, 2)}">0.00</span>
+            </div>
+            <div class="row">
+                <span class="label">Last NAV:</span>
+                <span class="value" th:text="${#numbers.formatDecimal(order.lastPrice, 0, 2)} + ' (' + ${#numbers.formatDecimal(order.dayChangePercentage, 0, 2)} + '%)'"></span>
+            </div>
+            <div class="row">
+                <span class="label">Order Date:</span>
+                <span class="value" th:text="${#dates.format(order.mfOrder.orderTimestamp, 'dd MMM yyyy')}">10 Jun 9999</span>
+            </div>
+
+
+        </div>
+    </div>
+    <p>
+        <a class="button" th:href="@{${appUrl}}">View MF Sips and Orders</a>
+    </p>
+    <p style="margin-top: 30px;">Regards,<br/>Trading Insights Team</p>
+</div>
+</body>
+</html>

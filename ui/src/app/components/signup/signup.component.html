@@ -1,0 +1,347 @@
+<div class="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
+  <div class="flex flex-col lg:flex-row min-h-screen">
+
+    <!-- Left Panel - Hero Section -->
+    <div class="lg:w-1/2 bg-gradient-to-br from-emerald-600 via-green-700 to-teal-800 text-white flex flex-col justify-center p-8 lg:p-16">
+      <div class="max-w-md mx-auto lg:mx-0">
+        <!-- Logo -->
+        <div class="flex items-center mb-6">
+          <img ngSrc="assets/images/app-logo.jpg" alt="FamVest Logo"
+               class="w-12 h-10 rounded-lg mr-3 shadow-lg mb-4" height="48" width="48"/>
+          <h1 class="text-3xl font-bold">FamVest</h1>
+        </div>
+
+        <!-- Hero Content -->
+        <h2 class="text-4xl lg:text-5xl font-bold mb-6 leading-tight">
+          Start Your<br>
+          <span class="text-green-200">Investment Journey</span>
+        </h2>
+
+        <p class="text-xl text-green-100 mb-8 leading-relaxed">
+          Join thousands of families who trust FamVest to manage their financial future.
+          Get started with your free account today.
+        </p>
+
+        <!-- Benefits -->
+        <div class="space-y-4">
+          <div class="flex items-center">
+            <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center mr-4">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
+              </svg>
+            </div>
+            <span class="text-green-100">Free Account Setup</span>
+          </div>
+
+          <div class="flex items-center">
+            <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center mr-4">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd"></path>
+              </svg>
+            </div>
+            <span class="text-green-100">Real-time Portfolio Tracking</span>
+          </div>
+
+          <div class="flex items-center">
+            <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center mr-4">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+              </svg>
+            </div>
+            <span class="text-green-100">Encrypted Storage & Data Isolation</span>
+          </div>
+        </div>
+
+        <!-- Testimonial -->
+        <div class="mt-12 p-6 bg-green-500/20 rounded-lg border border-green-400/30">
+          <div class="flex items-start space-x-4">
+            <div class="w-12 h-12 bg-green-400 rounded-full flex items-center justify-center text-green-800 font-bold text-lg">
+              R
+            </div>
+            <div>
+              <p class="text-green-100 italic mb-2">
+                "FamVest helped us organize our family's investments and track our progress towards financial goals. Highly recommended!"
+              </p>
+              <div class="text-green-200 text-sm">
+                <strong>Rajesh Kumar</strong> • Family Investor
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="grid grid-cols-2 gap-6 mt-8 pt-8 border-t border-green-500">
+          <div class="text-center">
+            <div class="text-3xl font-bold text-green-200">2 Min</div>
+            <div class="text-sm text-green-300">Quick Setup</div>
+          </div>
+          <div class="text-center">
+            <div class="text-3xl font-bold text-green-200">Free</div>
+            <div class="text-sm text-green-300">Always Free Plan</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel - Signup Form -->
+    <div class="lg:w-1/2 flex items-center justify-center p-8 lg:p-16">
+      <div class="w-full max-w-md">
+
+        <!-- Progress Indicator -->
+        <div class="mb-8">
+          <div class="flex items-center justify-center space-x-4">
+            <div class="flex items-center">
+              <div class="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-medium"
+                   [class]="!otpSent ? 'bg-green-600 text-white' : 'bg-green-100 text-green-600'">
+                1
+              </div>
+              <span class="ml-2 text-sm font-medium"
+                    [class]="!otpSent ? 'text-green-600' : 'text-gray-500'">
+                Account Details
+              </span>
+            </div>
+
+            <div class="w-8 border-t-2" [class]="otpSent ? 'border-green-600' : 'border-gray-300'"></div>
+
+            <div class="flex items-center">
+              <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium"
+                   [class]="otpSent ? 'bg-green-600 text-white' : 'bg-gray-300 text-gray-500'">
+                2
+              </div>
+              <span class="ml-2 text-sm font-medium"
+                    [class]="otpSent ? 'text-green-600' : 'text-gray-500'">
+                Verify Email
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Header -->
+        <div class="text-center mb-8">
+          <h2 class="text-3xl font-bold text-gray-900 mb-2">Create Your Account</h2>
+          <p class="text-gray-600">
+            {{ !otpSent ? 'Join FamVest and start managing your investments' : 'We\'ve sent a verification code to your email' }}
+          </p>
+        </div>
+
+        <!-- Account Details Form -->
+        <form *ngIf="!otpSent" [formGroup]="signUpForm" (ngSubmit)="sendOtp()" class="space-y-4">
+          <!-- Full Name Field -->
+          <div>
+            <label for="fullName" class="block text-sm font-medium text-gray-700 mb-2">
+              Full Name <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+              <input formControlName="fullName"
+                     type="text"
+                     id="fullName"
+                     name="fullName"
+                     placeholder="Enter your full name"
+                     required
+                     autocomplete="name"
+                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all" />
+              <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+              </div>
+            </div>
+
+            <div *ngIf="signUpForm.get('fullName')?.touched && signUpForm.get('fullName')?.invalid" class="mt-2">
+              <p class="text-red-500 text-sm" *ngIf="signUpForm.get('fullName')?.errors?.['required']">Full name is required</p>
+            </div>
+          </div>
+
+          <!-- Email Field -->
+          <div>
+            <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+              Email Address <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+              <input formControlName="email"
+                     type="text"
+                     id="email"
+                     name="email"
+                     placeholder="Enter your email address"
+                     required
+                     autocomplete="email"
+                     (input)="toLowerCase($event)"
+                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all" />
+              <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                </svg>
+              </div>
+            </div>
+
+            <div *ngIf="signUpForm.get('email')?.touched && signUpForm.get('email')?.invalid" class="mt-2">
+              <p class="text-red-500 text-sm" *ngIf="signUpForm.get('email')?.errors?.['required']">Email is required</p>
+              <p class="text-red-500 text-sm" *ngIf="signUpForm.get('email')?.errors?.['email']">Please enter a valid email address</p>
+            </div>
+          </div>
+
+          <!-- Password Field -->
+          <div>
+            <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+              Password <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+              <input formControlName="password"
+                     [type]="showPassword ? 'text' : 'password'"
+                     id="password"
+                     required
+                     placeholder="Create a strong password"
+                     autocomplete="new-password"
+                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all pr-12" />
+
+              <button type="button"
+                      (click)="showPassword = !showPassword"
+                      class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                      tabindex="-1">
+                <fa-icon [icon]="showPassword ? faEyeSlash : faEye" class="h-5 w-5"></fa-icon>
+              </button>
+            </div>
+
+            <div *ngIf="signUpForm.get('password')?.touched && signUpForm.get('password')?.invalid" class="mt-2">
+              <p class="text-red-500 text-sm" *ngIf="signUpForm.get('password')?.errors?.['required']">Password is required</p>
+            </div>
+          </div>
+
+          <!-- Password Requirements -->
+          <div class="text-xs text-gray-500 space-y-1">
+            <p>Password must be between 8 and 20 characters.</p>
+          </div>
+
+          <!-- Terms and Privacy -->
+          <div class="text-sm text-gray-600 bg-gray-50 p-4 rounded-lg">
+            By creating an account, you agree to our
+            <a href="#" class="text-green-600 hover:text-green-500 underline">Terms of Service</a>
+            and
+            <a href="#" class="text-green-600 hover:text-green-500 underline">Privacy Policy</a>.
+          </div>
+
+          <!-- Sign Up Button -->
+          <button
+            type="submit"
+            [disabled]="signUpForm.invalid || isSendingOtp"
+            class="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-3 px-4 rounded-lg font-medium hover:from-green-700 hover:to-green-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+          >
+            <fa-icon *ngIf="isSendingOtp" [icon]="faSpinner" class="fa-spin"></fa-icon>
+            {{ isSendingOtp ? 'Creating Account...' : 'Create Account & Send OTP' }}
+          </button>
+        </form>
+
+        <!-- OTP Verification Form -->
+        <form *ngIf="otpSent" [formGroup]="otpForm" (ngSubmit)="verifyOtp()" class="space-y-6">
+
+          <!-- Email Display -->
+          <div class="text-center p-4 bg-green-50 rounded-lg border border-green-200">
+            <div class="flex items-center justify-center mb-2">
+              <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+              </svg>
+            </div>
+            <p class="text-sm text-gray-700">
+              Verification code sent to:
+            </p>
+            <p class="text-green-700 font-semibold">{{signUpForm.value.email}}</p>
+          </div>
+
+          <!-- OTP Input -->
+          <div>
+            <label for="otp" class="block text-sm font-medium text-gray-700 mb-2">
+              Enter 6-digit OTP <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="otp"
+              name="otp"
+              formControlName="otp"
+              placeholder="000000"
+              required
+              maxlength="6"
+              autocomplete="one-time-code"
+              class="w-full px-4 py-3 tracking-widest border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+            />
+
+            <div *ngIf="otpForm.get('otp')?.touched && otpForm.get('otp')?.invalid" class="mt-2">
+              <p class="text-red-500 text-sm" *ngIf="otpForm.get('otp')?.errors?.['required']">OTP is required</p>
+            </div>
+          </div>
+
+          <!-- OTP Help -->
+          <div class="text-center text-sm text-gray-500">
+            <p>Didn't receive the code?</p>
+            <div class="flex items-center justify-center space-x-4 mt-2">
+              <button type="button" (click)="otpSent = false" class="text-green-600 hover:text-green-500 underline">
+                Change Email
+              </button>
+            </div>
+          </div>
+
+          <!-- Verify Button -->
+          <button
+            type="submit"
+            [disabled]="otpForm.invalid || isVerifyingOtp"
+            class="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-3 px-4 rounded-lg font-medium hover:from-green-700 hover:to-green-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+          >
+            <fa-icon *ngIf="isVerifyingOtp" [icon]="faSpinner" class="fa-spin"></fa-icon>
+            {{ isVerifyingOtp ? 'Verifying...' : 'Verify & Complete Registration' }}
+          </button>
+        </form>
+
+        <!-- Divider -->
+        <div class="mt-8 mb-6">
+          <div class="relative">
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-gray-300"></div>
+            </div>
+            <div class="relative flex justify-center text-sm">
+              <span class="px-4 bg-white text-gray-500">Already have an account?</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Login Link -->
+        <div class="text-center">
+          <button routerLink="/login"
+                  class="w-full bg-white border-2 border-green-600 text-green-600 py-3 px-4 rounded-lg font-medium hover:bg-green-50 transition-all transform hover:scale-[1.02] active:scale-[0.98]">
+            Sign In to Existing Account
+          </button>
+        </div>
+
+        <!-- Support -->
+        <div class="mt-6 text-center">
+          <p class="text-xs text-gray-500">
+            Need help? Contact us at
+            <a href="mailto:support@famvest.com" class="text-green-600 hover:text-green-500 underline">
+              famvest@hotmail.com
+            </a>
+          </p>
+
+          <!-- Trust Indicators -->
+          <div class="mt-6 pt-4 border-t border-gray-200">
+            <div class="flex items-center justify-center space-x-6 text-xs text-gray-500">
+              <div class="flex items-center">
+                <svg class="w-4 h-4 mr-1 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path>
+                </svg>
+                SSL Secured
+              </div>
+              <div class="flex items-center">
+                <svg class="w-4 h-4 mr-1 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                </svg>
+                Encrypted Storage
+              </div>
+              <div class="flex items-center">
+                <svg class="w-4 h-4 mr-1 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 8a6 6 0 01-7.743 5.743L10 14l-1 1-1 1H6v2H2v-4l4.257-4.257A6 6 0 1118 8zm-6-4a1 1 0 100 2 2 2 0 012 2 1 1 0 102 0 4 4 0 00-4-4z" clip-rule="evenodd"></path>
+                </svg>
+                Data Isolation
+              </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

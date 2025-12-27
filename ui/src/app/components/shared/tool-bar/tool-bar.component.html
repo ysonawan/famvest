@@ -1,0 +1,135 @@
+<!-- Filter & Sort Popover Component -->
+<div class="relative text-gray-600 flex items-center gap-3 text-sm">
+  <!-- Toggle Button -->
+  <button
+    *ngIf="filterOptions.length > 0 || sortOptions.length > 0"
+    [ngClass]="getFilterSortButtonColor()"
+    (click)="togglePopover()"
+    class="px-3 py-2 border rounded-md shadow-sm  "
+    aria-label="Filter & Sort"
+    matTooltip="Filter & Sort"
+  >
+    <fa-icon [icon]="faSliders" [ngClass]="getFilterSortIconColor()"></fa-icon>
+  </button>
+
+  <button
+    (click)="refresh()"
+    class="text-blue-600 hover:underline focus:outline-none flex items-center"
+    [disabled]="isRefreshing"
+    [matTooltip]="isRefreshing ? 'Loading' : 'Refresh'"
+  >
+    <fa-icon [icon]="isRefreshing ? faSpinner : faRefresh" [class.fa-spin]="isRefreshing" class="mr-1"></fa-icon>
+    <span class="hidden sm:inline">{{ isRefreshing ? 'Loading' : 'Refresh' }}</span>
+  </button>
+
+  <button *ngIf="showChartButton"
+          (click)="toggleChartView()"
+          class="text-blue-600 hover:underline focus:outline-none flex items-center gap-1"
+          matTooltip="Analyse">
+    <fa-icon [icon]="faChartPie"></fa-icon>
+    <span class="hidden sm:inline">Analyse</span>
+  </button>
+
+  <button *ngIf="showChargesButton"
+    (click)="showCharges()"
+    class="text-blue-600 hover:underline focus:outline-none flex items-center gap-1"
+    matTooltip="Charges">
+    <fa-icon [icon]="faFileInvoiceDollar"></fa-icon>
+    <span class="hidden sm:inline">Charges</span>
+  </button>
+
+  <button *ngIf="showSummaryButton"
+          (click)="showSummary()"
+          class="text-blue-600 hover:underline focus:outline-none flex items-center gap-1"
+          matTooltip="Summary">
+    <fa-icon [icon]="faClipboardList"></fa-icon>
+    <span class="hidden sm:inline">Summary</span>
+  </button>
+
+  <button *ngIf="showExitButton"
+          (click)="exitSelected()"
+          class="text-red-600 hover:underline focus:outline-none flex items-center gap-1"
+          [matTooltip]="exitButtonLabel">
+    <fa-icon [icon]="faRightFromBracket"></fa-icon>
+    <span class="hidden sm:inline">{{ exitButtonLabel }}</span>
+  </button>
+
+  <button *ngIf="showCancelButton"
+          (click)="exitSelected()"
+          class="text-red-600 hover:underline focus:outline-none flex items-center gap-1"
+          [matTooltip]="cancelButtonLabel">
+    <fa-icon [icon]="faXmark"></fa-icon>
+    <span class="hidden sm:inline">{{ cancelButtonLabel }}</span>
+  </button>
+
+  <button *ngIf="showLogsButton"
+          (click)="showLogs()"
+          class="text-blue-600 hover:underline focus:outline-none flex items-center gap-1"
+          matTooltip="Log Viewer">
+    <fa-icon [icon]="faFile"></fa-icon>
+    <span class="hidden sm:inline">Log Viewer</span>
+  </button>
+
+  <!-- Popover Panel -->
+  <div
+    *ngIf="showFilterSort"
+    class="absolute left-0 top-12 z-50 p-4 bg-white border rounded-md shadow-sm min-w-96 max-w-max"
+  >
+
+    <!-- Filter Section -->
+    <div>
+      <!-- Filter Header and Clear Button in One Line -->
+      <div class="flex items-center justify-between mb-2">
+        <label class="text-sm font-semibold text-gray-600">Filter By</label>
+        <button
+          (click)="clearFilters()"
+          class="text-sm text-blue-600 hover:underline focus:outline-none">
+          Clear Filters
+        </button>
+      </div>
+      <!-- Status Filter -->
+      <div class="flex gap-2 flex-wrap mb-4" *ngFor="let filter of filterOptions">
+        <button
+          *ngFor="let value of filter.values"
+          (click)="onFilterChange(filter, value)"
+          [ngClass]="isFilterOptionSelected(filter, value)? 'bg-blue-100 text-blue-700 border-blue-400' : 'bg-white text-gray-600 hover:bg-gray-100'"
+          class="px-3 py-1 border rounded-md text-sm transition"
+        >
+          {{ value }}
+        </button>
+      </div>
+
+      <!-- Divider -->
+      <div *ngIf="sortOptions.length > 0" class="border-t border-gray-200 my-4"></div>
+
+      <!-- Sort Section -->
+      <div class="mt-4" *ngIf="sortOptions.length > 0">
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-sm font-semibold text-gray-600">Sort By</label>
+          <button
+            (click)="clearSort()"
+            class="text-sm text-blue-600 hover:underline focus:outline-none">
+            Clear Sort
+          </button>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <button
+            *ngFor="let sort of sortOptions"
+            (click)="toggleSort(sort)"
+            [ngClass]="{
+                  'bg-blue-100 text-blue-700 border-blue-400': sortSelection.key === sort.key,
+                  'bg-white text-gray-600 hover:bg-gray-100': sortSelection.key !== sort.key
+            }"
+            class="px-3 py-1 border rounded-md text-sm transition flex items-center space-x-1"
+          >
+            <span>{{ sort.label }}</span>
+            <fa-icon
+              *ngIf="sortSelection.key === sort.key"
+              [icon]="sortSelection.direction === 'asc' ? faArrowUp : faArrowDown"
+            ></fa-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

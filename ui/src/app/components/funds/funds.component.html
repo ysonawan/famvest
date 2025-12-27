@@ -1,0 +1,71 @@
+<div class="page-container">
+
+  <!-- User Filter Section -->
+  <div class="flex justify-end items-center mb-4">
+    <app-user-filter
+      (selectAllUsers)="onAllUserSelection()"
+      (selectUsers)="onUserSelection($event)"
+      (totalUsers)="captureUsers($event)"
+      [selectedUserIds]="selectedUserIds">
+    </app-user-filter>
+  </div>
+
+  <div *ngIf="!errorMessage">
+    <!-- Summary Card -->
+    <div class="bg-white border rounded-md p-6 mb-6 flex flex-col items-center">
+      <div class="flex flex-row items-center">
+        <h2 class="text-xl font-semibold text-gray-600 m-0"><fa-icon [icon]="faWallet" class="text-blue-500 mr-2"></fa-icon>Available Margin</h2>
+      </div>
+      <p class="text-2xl font-medium text-gray-600">{{ consolidatedFunds.net | currency:'INR':'symbol':'1.2-2' }}</p>
+      <span class="text-base text-gray-400">(Cash + Collateral)</span>
+    </div>
+
+    <!-- Cash & Margin Section -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <div class="bg-white border rounded-md p-4 flex flex-col items-center">
+
+        <p class="text-gray-600 text-base">  <fa-icon [icon]="faDollarSign" class="text-green-600 mr-2 text-base"></fa-icon>Available Cash</p>
+        <p class="text-base font-medium text-gray-600">{{ consolidatedFunds.availableCash | currency:'INR':'symbol':'1.2-2' }}</p>
+      </div>
+      <div class="bg-white border rounded-md p-4 flex flex-col items-center">
+        <p class="text-gray-600 text-base"><fa-icon [icon]="faMoneyBillTrendUp" class="text-red-600 mr-2 text-base"></fa-icon>Used Margin</p>
+        <p class="text-base font-medium text-gray-600">{{ consolidatedFunds.usedMargin | currency:'INR':'symbol':'1.2-2' }}</p>
+      </div>
+    </div>
+
+    <!-- Detailed Breakdown -->
+    <div class="bg-white border rounded-md p-6">
+      <h3 class="text-base text-gray-600 mb-4">Breakdown</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-700">
+        <div class="flex justify-between">
+          <span>Opening Balance</span>
+          <span>{{ consolidatedFunds.openingBalance | currency:'INR':'symbol':'1.2-2' }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Payin</span>
+          <span>{{ consolidatedFunds.payin | currency:'INR':'symbol':'1.2-2' }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span>SPAN</span>
+          <span>{{ consolidatedFunds.span | currency:'INR':'symbol':'1.2-2' }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Delivery Margin</span>
+          <span>{{ consolidatedFunds.holdingSales | currency:'INR':'symbol':'1.2-2' }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Exposure</span>
+          <span>{{ consolidatedFunds.exposure | currency:'INR':'symbol':'1.2-2' }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Option Premium</span>
+          <span>{{ consolidatedFunds.optionPremium | currency:'INR':'symbol':'1.2-2' }}</span>
+        </div>
+        <div class="flex justify-between col-span-2 border-t pt-4 mt-2">
+          <span class="text-base text-gray-600">Total Collateral Margin</span>
+          <span class="text-base font-medium text-gray-600">{{ consolidatedFunds.totalCollateral | currency:'INR':'symbol':'1.2-2' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

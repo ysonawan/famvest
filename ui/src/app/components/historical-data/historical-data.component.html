@@ -1,0 +1,74 @@
+<div class="page-container">
+
+  <p class="text-gray-600 mb-6">Download and analyze historical market data. Select instruments, set time ranges, and customize intervals to study price movements and trends.</p>
+
+  <div class="max-w-4xl w-full mx-auto bg-white rounded-md shadow p-4 space-y-4 text-gray-700">
+    <h2 class="text-lg font-semibold text-center">Download Historical Data</h2>
+
+    <form [formGroup]="historicalForm" (ngSubmit)="submit()" class="space-y-4">
+
+      <div class="relative mt-2">
+        <label class="block text-sm font-medium">Instrument Token  <span class="text-red-500">*</span></label>
+        <input
+          type="text"
+          formControlName="instrument"
+          (input)="onSearchTermChange($event)"
+          class="form-control"
+          placeholder="Search and add eg: infy, nifty fut, etc" required
+        />
+        <p *ngIf="historicalForm.get('instrument')?.touched && historicalForm.get('instrument')?.invalid"
+           class="text-red-500 text-sm mt-1">Instrument Token is required.</p>
+      </div>
+      <div *ngIf="fetchedInstruments.length > 0"
+           class="mt-2 bg-white border border-gray-300 rounded-md shadow-sm max-h-60 overflow-auto">
+        <div *ngFor="let instrument of fetchedInstruments"
+             class="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+             (click)="selectInstrument(instrument)">
+          <div class="flex justify-between items-center">
+            <div class="text-gray-700">{{ instrument.displayName }}</div>
+            <div class="text-xs text-gray-400">{{ instrument.segment }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium">Interval <span class="text-red-500">*</span></label>
+        <select formControlName="interval" class="form-control w-full mt-1" required>
+          <option *ngFor="let i of intervals" [value]="i">{{ i }}</option>
+        </select>
+        <p *ngIf="historicalForm.get('interval')?.touched && historicalForm.get('interval')?.invalid"
+           class="text-red-500 text-sm mt-1">Interval is required.</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-medium">From <span class="text-red-500">*</span></label>
+          <input formControlName="from" type="datetime-local" class="form-control w-full mt-1" required />
+          <p *ngIf="historicalForm.get('from')?.touched && historicalForm.get('from')?.invalid"
+             class="text-red-500 text-sm mt-1">From is required.</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium">To <span class="text-red-500">*</span></label>
+          <input formControlName="to" type="datetime-local" class="form-control w-full mt-1" required />
+          <p *ngIf="historicalForm.get('to')?.touched && historicalForm.get('to')?.invalid"
+             class="text-red-500 text-sm mt-1">To is required.</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <input type="checkbox" formControlName="continuous" id="continuous" />
+        <label for="continuous" class="text-sm">Get Continuous Data</label>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <input type="checkbox" formControlName="oi" id="oi" />
+        <label for="oi" class="text-sm">Get OI Data</label>
+      </div>
+
+      <button type="submit"
+              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-md transition">
+        Download Data
+      </button>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,110 @@
+<div
+  cdkDrag
+  cdkDragRootElement=".cdk-overlay-pane"
+  class="min-w-[300px] sm:min-w-[500px] w-full max-w-3xl mx-auto rounded-md shadow-sm overflow-hidden text-gray-700 bg-white"
+>
+  <!-- Header -->
+  <div cdkDragHandle class="flex items-center justify-between p-4 border-b cursor-move">
+     <span class="text-lg font-medium text-gray-600">Modify Trading Account</span>
+  </div>
+
+  <!-- Body -->
+  <div class="p-4">
+    <form [formGroup]="updateUserForm" (ngSubmit)="update()" class="space-y-3">
+      <!-- Nickname -->
+      <div>
+        <label class="block text-sm">
+          Nickname <span class="text-red-500">*</span>
+        </label>
+        <input
+          formControlName="name"
+          type="text"
+          required
+          placeholder="Enter a nickname"
+          class="form-control"
+        />
+        <p
+          *ngIf="updateUserForm.get('name')?.touched && updateUserForm.get('name')?.invalid"
+          class="text-red-500 text-sm mt-1"
+        >
+          Nickname is required.
+        </p>
+      </div>
+
+      <!-- Trading User ID -->
+      <div>
+        <label class="block text-sm ">
+          Trading User ID <span class="text-red-500">*</span>
+        </label>
+        <input
+          formControlName="userId"
+          type="text"
+          required
+          placeholder="Enter trading user ID"
+          class="form-control"
+        />
+        <p
+          *ngIf="updateUserForm.get('userId')?.touched && updateUserForm.get('userId')?.invalid"
+          class="text-red-500 text-sm mt-1"
+        >
+          Trading User ID is required.
+        </p>
+      </div>
+
+      <!-- Optional Secret Fields -->
+      <app-toggle-secret-field
+        [formGroup]="updateUserForm"
+        controlName="password"
+        label="Trading Account Password (optional)"
+        placeholder="Enter password (if you want automated login)"
+        [required]="false"
+      ></app-toggle-secret-field>
+
+      <app-toggle-secret-field
+        [formGroup]="updateUserForm"
+        controlName="totpKey"
+        label="TOTP Key (optional)"
+        placeholder="Enter TOTP key (if you want automated login)"
+        [required]="false"
+      ></app-toggle-secret-field>
+
+      <app-toggle-secret-field
+        [formGroup]="updateUserForm"
+        controlName="apiKey"
+        label="API Key"
+        placeholder="Enter API key"
+        [required]="false"
+      ></app-toggle-secret-field>
+
+      <app-toggle-secret-field
+        [formGroup]="updateUserForm"
+        controlName="apiSecret"
+        label="API Secret"
+        placeholder="Enter API secret"
+        [required]="false"
+      ></app-toggle-secret-field>
+
+      <!-- Info Note -->
+      <div>
+        <app-note [type]="'info'" [dismissible]="true">
+          You cannot view or edit existing values for the above secrets.<br />
+          To update any of these fields, please enter new values — existing values will be overwritten upon submission.
+        </app-note>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-col sm:flex-row gap-3 pt-2">
+        <button type="submit" class="flex-1 py-2 rounded-md text-white bg-blue-600 hover:bg-blue-700 transition">
+          Submit
+        </button>
+        <button
+          type="button"
+          (click)="onClose()"
+          class="flex-1 py-2 border rounded-md hover:bg-gray-100 transition"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

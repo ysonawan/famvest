@@ -1,0 +1,214 @@
+<!-- Orders Table with Sticky Header and User Separators -->
+<div class="w-full bg-white border border-gray-200 rounded-md shadow-sm">
+
+  @if (!groupedOrders || groupedOrders.length === 0) {
+    <div class="flex items-center justify-center py-12 px-4">
+      <p class="text-gray-500 text-center">No orders to display</p>
+    </div>
+  } @else {
+    <!-- Table View -->
+    <div>
+      <table class="w-full border-collapse">
+        <thead class="sticky top-0 z-20 bg-gray-100 shadow-sm">
+          <tr class="text-left text-sm font-semibold text-gray-700 uppercase tracking-wider bg-gray-100 border-b border-gray-300">
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-center w-12">
+              <input
+                type="checkbox"
+                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer"
+                [checked]="isAllSelected"
+                [indeterminate]="isSomeSelected"
+                (change)="toggleSelectAll()"
+                title="Select/Unselect all pending orders"
+              />
+            </th>
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left">
+              <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setSort('instrument')">
+                INSTRUMENT
+                <span class="text-[10px]" *ngIf="getSortIndicator('instrument')">{{ getSortIndicator('instrument') }}</span>
+              </button>
+            </th>
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-right">
+              <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setSort('product')">
+                PRODUCT
+                <span class="text-[10px]" *ngIf="getSortIndicator('product')">{{ getSortIndicator('product') }}</span>
+              </button>
+            </th>
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-right">
+              <button type="button" class="flex items-center gap-1 w-full justify-end" (click)="setSort('quantity')">
+                QTY
+                <span class="text-[10px]" *ngIf="getSortIndicator('quantity')">{{ getSortIndicator('quantity') }}</span>
+              </button>
+            </th>
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-right">
+              <button type="button" class="flex items-center gap-1 w-full justify-end" (click)="setSort('price')">
+                PRICE
+                <span class="text-[10px]" *ngIf="getSortIndicator('price')">{{ getSortIndicator('price') }}</span>
+              </button>
+            </th>
+
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-right">
+              <button type="button" class="flex items-center gap-1 w-full justify-end" (click)="setSort('change')">
+                LTP
+                <span class="text-[10px]" *ngIf="getSortIndicator('change')">{{ getSortIndicator('change') }}</span>
+              </button>
+            </th>
+
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left">
+              <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setSort('status')">
+                STATUS
+                <span class="text-[10px]" *ngIf="getSortIndicator('status')">{{ getSortIndicator('status') }}</span>
+              </button>
+            </th>
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-right">
+              <button type="button" class="flex items-center gap-1 w-full justify-end" (click)="setSort('timestamp')">
+                TIME
+                <span class="text-[10px]" *ngIf="getSortIndicator('timestamp')">{{ getSortIndicator('timestamp') }}</span>
+              </button>
+            </th>
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-center">ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white">
+          <ng-container *ngFor="let group of sortedGroupedOrders; let isLast = last; trackBy: trackByUser">
+
+            <!-- User Header Row -->
+            <tr class="border-b border-gray-200 text-gray-700 text-sm md:text-sm">
+              <td colspan="9" class="px-2 md:px-4 whitespace-nowrap">
+                <app-user-info-header
+                  [userId]="group.userId"
+                  [userName]="group.userName || group.userId"
+                  [fullName]="group.fullName || group.userName"
+                  [avatarUrl]="group.avatarUrl"
+                  [fallbackAvatarUrl]="fallbackAvatarUrl">
+                </app-user-info-header>
+              </td>
+            </tr>
+
+            <!-- Order Rows -->
+            <ng-container *ngFor="let orderDetails of group.orders; trackBy: trackBySequenceNumber">
+              <tr class="border-b border-gray-200 text-sm text-gray-700 hover:bg-blue-50 transition-colors duration-150">
+
+                <!-- Checkbox -->
+                <td class="px-2 md:px-4 py-2 md:py-3 text-center whitespace-nowrap">
+                  <input
+                    *ngIf="isOrderPending(orderDetails.order.status)"
+                    type="checkbox"
+                    class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer"
+                    [checked]="isOrderSelected(orderDetails)"
+                    (change)="toggleOrderSelection(orderDetails)"
+                    title="Select order for bulk cancel"
+                  />
+                </td>
+
+                <!-- Instrument -->
+                <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">
+                  <div class="flex items-center gap-2">
+                    <app-small-chip
+                      [text]="orderDetails.order.transactionType"
+                      [color]="getTransactionTypeChipColor(orderDetails.order.transactionType)">
+                    </app-small-chip>
+                    <span class="truncate max-w-xs" [title]="orderDetails.displayName">
+                      {{ orderDetails.displayName }}
+                    </span>
+                    <app-market-depth-invoker
+                      [title]="orderDetails.displayName"
+                      [instrumentToken]="orderDetails.instrumentToken">
+                    </app-market-depth-invoker>
+
+                    <app-small-chip [text]="orderDetails.order.exchange" [color]="'gray'"></app-small-chip>
+                    <div class="flex items-center gap-1.5 bg-blue-50 rounded-md px-2 py-0.5 text-blue-700">
+                      <fa-icon
+                        [icon]="faTag"
+                        class="text-blue-500 text-xs"
+                        [matTooltip]="orderDetails.order.tag ? orderDetails.order.tag : 'kite-web-order'">
+                      </fa-icon>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- Product -->
+                <td class="px-2 md:px-4 py-2 md:py-3 text-left whitespace-nowrap">
+                  <app-small-chip class="mr-1" [text]="orderDetails.order.product" [color]="orderDetails.order.product === 'MIS' ? 'orange':'purple'"></app-small-chip>
+                  <app-small-chip [text]="orderDetails.order.orderType" [color]="'gray'"></app-small-chip>
+                </td>
+
+                <!-- Quantity -->
+                <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+                  <span class="text-gray-700">
+                    {{ orderDetails.order.filledQuantity }}/{{ orderDetails.order.quantity }}
+                  </span>
+                </td>
+
+                <!-- Price -->
+                <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+                  <span *ngIf="orderDetails.order.orderType === 'MARKET'">
+                    {{ orderDetails.order.averagePrice | number:'1.2-2' }}
+                  </span>
+                  <span *ngIf="orderDetails.order.orderType !== 'MARKET' && orderDetails.order.orderType !== 'SL'">
+                    {{ orderDetails.order.price | number:'1.2-2' }}
+                  </span>
+                  <span *ngIf="orderDetails.order.orderType === 'SL'">
+                    {{ orderDetails.order.price | number:'1.2-2' }}/{{ orderDetails.order.triggerPrice | number:'1.2-2' }}
+                  </span>
+                </td>
+
+                <!-- LTP -->
+                <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+                  <span [ngClass]="color(orderDetails.change)">
+                    {{ orderDetails.lastPrice | number:'1.2-2' }}
+                    <span
+                      [class.bg-green-50]="orderDetails.change > 0"
+                      [class.bg-red-50]="orderDetails.change < 0"
+                      class="text-sm rounded-md px-1 py-[1px]">
+                      {{ orderDetails.change / 100 | percent:'1.2-2' }}
+                    </span>
+                  </span>
+                </td>
+
+                <!-- Status -->
+                <td class="px-2 md:px-4 py-2 md:py-3 text-left whitespace-nowrap">
+                  <div class="flex items-center gap-2">
+                    <fa-icon
+                      *ngIf="orderDetails.order.status === 'AMO REQ RECEIVED' || orderDetails.order.status === 'MODIFY AMO REQ RECEIVED'"
+                      [icon]="faClock"
+                      class="text-orange-400">
+                    </fa-icon>
+                    <app-small-chip
+                      [matTooltip]="orderDetails.order.statusMessage? orderDetails.order.statusMessage : ''"
+                      [text]="orderDetails.order.status"
+                      [color]="getStatusChipColor(orderDetails.order.status)">
+                    </app-small-chip>
+                  </div>
+                </td>
+
+                <!-- Timestamp -->
+                <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+                  <span class="text-gray-700 text-sm">
+                    {{ getOrderTimeStamp(orderDetails.order.orderTimestamp) | istDate }}
+                  </span>
+                </td>
+
+                <!-- Actions -->
+                <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+                  <app-action-menu
+                    [row]="orderDetails"
+                    [actions]="getActionButtons(orderDetails)"
+                    (handleAction)="handleAction($event)">
+                  </app-action-menu>
+                </td>
+              </tr>
+            </ng-container>
+
+            <!-- User Separator -->
+            <tr *ngIf="!isLast">
+              <td colspan="9" class="py-1">
+                <div class="border-b border-dashed border-gray-100"></div>
+              </td>
+            </tr>
+          </ng-container>
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+

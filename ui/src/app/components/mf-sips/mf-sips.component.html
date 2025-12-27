@@ -1,0 +1,189 @@
+<div class="page-container">
+
+  <div *ngIf="!errorMessage">
+    <div class="flex items-center justify-between border-b border-gray-200 mb-4">
+      <!-- Left: Tab buttons -->
+      <div class="flex gap-1">
+        <div *ngFor="let tab of parentTabs"
+             (click)="setActiveParentTab(tab)"
+             [class.active-tab]="tab === activeParentTab"
+             [class.text-gray-700]="tab !== activeParentTab"
+             class="tab-category cursor-pointer pb-2 px-4 py-2 rounded-md transition hover:bg-gray-100 hover:text-blue-500 relative"
+        >
+          {{ tab }}
+          <!-- Count Badge -->
+          <span
+            class="text-sm gap-1.5 font-semibold pb-0.5 px-2 py-1 rounded-md"
+            [ngClass]="{
+              'bg-blue-100 text-blue-600': tab === activeParentTab,
+              'bg-blue-50 text-blue-500': tab !== activeParentTab
+            }"
+          >
+            {{ parentTabCounts[tab] }}
+          </span>
+          <span
+            *ngIf="tab === activeParentTab" class="absolute left-0 bottom-1 h-0.5 w-0 bg-blue-500 transition-all"
+          ></span>
+        </div>
+      </div>
+    </div>
+    <div *ngIf="!errorMessage && activeParentTab === parentTabs[0]" >
+      <app-sip-summary
+        [totalSipAmount]="totalSipAmount"
+        [contributionThisMonth]="contributionThisMonth"
+        [upcomingSips]="upcomingSips"
+        [activeSips]="activeSips"
+        [pausedSips]="pausedSips">
+      </app-sip-summary>
+      <div class="flex items-center justify-between gap-4 w-full mb-2">
+        <!-- Filter/Sort Component -->
+        <div class="flex-shrink-0">
+          <app-tool-bar
+            [isLoadingData]="isLoadingData"
+            [filterOptions]="filterOptions"
+            [filterSelection]="filterSelection"
+            (filtersChanged)="applyMfSipFilters($event)"
+            [showChartButton]="true"
+            (toggleChart)="toggleChart()"
+            (handleRefresh)="handleRefreshForSips($event)">
+          </app-tool-bar>
+        </div>
+
+        <!-- Info Icon - positioned after toolbar -->
+        <div class="flex-shrink-0">
+          <fa-icon
+            [icon]="faInfoCircle"
+            class="text-blue-500 cursor-help"
+            matTooltip="The Mutual Fund order screen displays orders placed within the last 2 months. Verify filters or search criteria if expected orders are not visible."
+            matTooltipPosition="right">
+          </fa-icon>
+        </div>
+
+        <!-- Empty div to push user filter and search input to the right -->
+        <div class="flex-1"></div>
+
+        <!-- User Filter - positioned before search input -->
+        <div class="flex-shrink-0">
+          <app-user-filter
+            (selectAllUsers)="onAllUserSelection()"
+            (selectUsers)="onUserSelection($event)"
+            (totalUsers)="captureUsers($event)"
+            [selectedUserIds]="selectedUserIds"
+          ></app-user-filter>
+        </div>
+
+        <!-- Search Input - positioned on the right -->
+        <div class="flex-shrink-0">
+          <app-search-input
+            [placeholder]="'Search SIPs by User ID or fund'"
+            (inputChange)="onSearch($event)"
+            [searchTerm]="searchQuery">
+          </app-search-input>
+        </div>
+      </div>
+      <div [@expandCollapse]="showChart ? 'expanded' : 'collapsed'"
+           class="overflow-hidden transition-all duration-300">
+        <app-timeline-chart
+          [title]="'MF SIP Timeline'"
+          [xAxisLabels]="dateLabels"
+          [legendLabels]="legendLabels"
+          [series]="series"
+          [showDataZoom]="true"
+        />
+      </div>
+      <div *ngIf="groupedSips.length > 0; else noData" class="page-content" >
+        <!-- Table -->
+        <app-mf-sip-table
+          [groupedSips]="groupedSips"
+          [fallbackAvatarUrl]="fallbackAvatarUrl"
+          [actions]="actions"
+          (handleClickAction)="handleAction($event)"
+        ></app-mf-sip-table>
+
+      </div>
+      <ng-template #noData>
+        <div class="page-content">
+          <app-note
+            [type]="'warning'"
+            [dismissible]="false"
+            [atCenter]="true"
+          >
+            You don’t have any mutual fund sips at the moment. Check your filters or search criteria and request token status for the trading accounts.
+          </app-note>
+        </div>
+      </ng-template>
+    </div>
+
+    <div *ngIf="!errorMessage && activeParentTab === parentTabs[1]">
+
+      <app-mf-order-summary
+        [totalBuyOrders]="totalBuyOrders"
+        [totalBuyAmount]="totalBuyAmount"
+        [totalSellOrders]="totalSellOrders"
+        [totalSellAmount]="totalSellAmount"
+      >
+      </app-mf-order-summary>
+      <div class="flex items-center justify-between gap-4 w-full mb-2">
+        <!-- Filter/Sort Component -->
+        <div class="flex-shrink-0">
+          <app-tool-bar [filterOptions]="mfOrderFilterOptions" [filterSelection]="mfOrderFilterSelection"
+            (filtersChanged)="applyMfOrderFilters($event)"
+            (handleRefresh)="handleRefreshForMfOrders($event)">
+          </app-tool-bar>
+        </div>
+
+        <!-- Info Icon - positioned after toolbar -->
+        <div class="flex-shrink-0">
+          <fa-icon
+            [icon]="faInfoCircle"
+            class="text-blue-500 cursor-help"
+            matTooltip="The Mutual Fund order screen displays orders placed within the last 2 months. Verify filters or search criteria if expected orders are not visible."
+            matTooltipPosition="right">
+          </fa-icon>
+        </div>
+
+        <!-- Empty div to push user filter and search input to the right -->
+        <div class="flex-1"></div>
+
+        <!-- User Filter - positioned before search input -->
+        <div class="flex-shrink-0">
+          <app-user-filter
+            (selectAllUsers)="onAllUserSelection()"
+            (selectUsers)="onUserSelection($event)"
+            (totalUsers)="captureUsers($event)"
+            [selectedUserIds]="selectedUserIds"
+          ></app-user-filter>
+        </div>
+
+        <!-- Search Input - positioned on the right -->
+        <div class="flex-shrink-0">
+          <app-search-input
+            [placeholder]="'Search mf orders by User ID or fund'"
+            (inputChange)="onMutualFundsSearch($event)"
+            [searchTerm]="mfSearchQuery">
+          </app-search-input>
+        </div>
+      </div>
+
+      <div *ngIf="mfGroupedOrders.length > 0; else noMfOrderData" class="page-content">
+        <app-mf-order-table
+          [groupedRows]="mfGroupedOrders"
+          (handleClickAction)="handleMfOrderAction($event)"
+          [actions]="mfOrderActions"
+        >
+        </app-mf-order-table>
+      </div>
+      <ng-template #noMfOrderData>
+        <div class="page-content">
+          <app-note
+            [type]="'warning'"
+            [dismissible]="false"
+            [atCenter]="true"
+          >
+            You don’t have any mutual fund orders in this section. Check your filters or search criteria and request token status for the trading accounts.
+          </app-note>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>

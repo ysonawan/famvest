@@ -1,0 +1,59 @@
+<div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-4 mb-2 w-full">
+<!-- Maximum Profit -->
+  <div
+    class="bg-white p-2 border rounded-md shadow-sm flex flex-col items-center justify-center text-center min-h-16"
+    *ngIf="maxProfit !== undefined"
+  >
+    <span class="text-xs text-gray-500 uppercase tracking-wide">Maximum Profit</span>
+    <span class="text-base font-medium text-gray-700 mt-1">
+      {{ maxProfit | currency:'INR':'symbol':'1.2-2' }}
+    </span>
+  </div>
+
+  <!-- Day's P&L -->
+  <div
+    class="bg-white p-2 border rounded-md shadow-sm flex flex-col items-center justify-center text-center min-h-16"
+    *ngIf="daysPnL !== undefined"
+  >
+    <span class="text-xs text-gray-500 uppercase tracking-wide">Day's P&amp;L</span>
+    <span
+      class="text-base font-medium mt-1"
+      [ngClass]="{
+        'text-green-600': daysPnL > 0,
+        'text-red-600': daysPnL < 0,
+        'text-gray-700': daysPnL === 0
+      }"
+    >
+      {{ daysPnL | currency:'INR':'symbol':'1.2-2' }}
+    </span>
+  </div>
+
+  <!-- Total P&L -->
+  <div
+    class="bg-white p-2 border rounded-md shadow-sm flex flex-col items-center justify-center text-center min-h-16"
+    *ngIf="totalPnL !== undefined"
+  >
+    <span class="text-xs text-gray-500 uppercase tracking-wide">Total P&amp;L</span>
+    <span
+      class="text-base font-medium mt-1"
+      [ngClass]="{
+        'text-green-600': totalPnL > 0,
+        'text-red-600': totalPnL < 0,
+        'text-gray-700': totalPnL === 0
+      }"
+    >
+      {{ totalPnL | currency:'INR':'symbol':'1.2-2' }}
+    </span>
+  </div>
+
+  <!-- Profit Left -->
+  <div
+    class="bg-white p-2 border rounded-md shadow-sm flex flex-col items-center justify-center text-center min-h-16"
+    *ngIf="profitLeft !== undefined"
+  >
+    <span class="text-xs text-gray-500 uppercase tracking-wide">Profit Left</span>
+    <span class="text-base font-medium text-gray-600 mt-1">
+      {{ profitLeft | currency:'INR':'symbol':'1.2-2' }}
+    </span>
+  </div>
+</div>

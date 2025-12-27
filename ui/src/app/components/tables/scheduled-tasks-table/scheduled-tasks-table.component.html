@@ -1,0 +1,85 @@
+<div class="w-full bg-white border border-gray-200 rounded-md shadow-sm">
+  @if (!rows || rows.length === 0) {
+    <div class="flex items-center justify-center py-12 px-4">
+      <p class="text-gray-500 text-center">No scheduled tasks to display</p>
+    </div>
+  } @else {
+    <div class="overflow-x-auto">
+      <table class="w-full border-collapse min-w-max">
+        <thead class="sticky top-0 z-20 bg-gray-100 shadow-sm">
+          <tr class="text-left text-sm font-semibold text-gray-700 uppercase tracking-wider bg-gray-100 border-b border-gray-300">
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left">
+              <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setSort('schedulerName')">
+                NAME
+                <span class="text-[10px]" *ngIf="getSortIndicator('schedulerName')">{{ getSortIndicator('schedulerName') }}</span>
+              </button>
+            </th>
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left">
+              <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setSort('cronExpression')">
+                CRON EXPRESSION
+                <span class="text-[10px]" *ngIf="getSortIndicator('cronExpression')">{{ getSortIndicator('cronExpression') }}</span>
+              </button>
+            </th>
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left">
+              <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setSort('lastExecutionDate')">
+                LAST EXECUTION DATE
+                <span class="text-[10px]" *ngIf="getSortIndicator('lastExecutionDate')">{{ getSortIndicator('lastExecutionDate') }}</span>
+              </button>
+            </th>
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left">
+              <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setSort('executionStartTime')">
+                START TIME
+                <span class="text-[10px]" *ngIf="getSortIndicator('executionStartTime')">{{ getSortIndicator('executionStartTime') }}</span>
+              </button>
+            </th>
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left">
+              <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setSort('executionEndTime')">
+                END TIME
+                <span class="text-[10px]" *ngIf="getSortIndicator('executionEndTime')">{{ getSortIndicator('executionEndTime') }}</span>
+              </button>
+            </th>
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left">
+              <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setSort('status')">
+                STTAUS
+                <span class="text-[10px]" *ngIf="getSortIndicator('status')">{{ getSortIndicator('status') }}</span>
+              </button>
+            </th>
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-center">ACTION</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white">
+          <tr *ngFor="let row of sortedRows" class="border-b border-gray-200 text-sm text-gray-700 hover:bg-blue-50 transition-colors duration-150" [ngClass]="{ 'text-red-500 hover:text-red-600': row.errorMessage }">
+            <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">
+              <div class="flex items-center space-x-2">
+                <app-small-chip [text]="row.isActive? 'ACTIVE' : 'PAUSED'" [color]="getStatusColor(row.isActive? 'ACTIVE' : 'PAUSED')"></app-small-chip>
+                <span [matTooltip]="row.description">{{ row.schedulerName }}</span>
+              </div>
+            </td>
+            <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">
+              <span [matTooltip]="row.cronDescription">{{ row.cronExpression }} <span class="text-sm text-gray-400 uppercase ml-1">{{ row.timeZone }}</span></span>
+            </td>
+            <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">
+              {{ row.lastExecutionDate | istDate: 'date-ordinal' }}
+            </td>
+            <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">
+              {{ row.executionStartTime | istDate: 'time-no-mod' }}
+            </td>
+            <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">
+              {{ row.executionEndTime | istDate: 'time-no-mod' }}
+            </td>
+            <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">
+              <app-small-chip [matTooltip]="row.errorMessage ? row.errorMessage: ''" [text]="row.status" [color]="getStatusColor(row.status)"></app-small-chip>
+            </td>
+            <td class="px-2 md:px-4 py-2 md:py-3 text-center whitespace-nowrap">
+              <app-action-menu
+                [row]="row"
+                [actions]="getActionButtons(row)"
+                (handleAction)="handleAction($event)">
+              </app-action-menu>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

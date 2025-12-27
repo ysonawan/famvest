@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true">
+
+	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%X{tid}] %c{5}.%M - %m%n</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="DAILY_ROLL_FILE"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>logs/fam-vest.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<!-- Daily create new file -->
+			<fileNamePattern>logs/fam-vest.%d{yyyy-MM-dd}.log
+			</fileNamePattern>
+			<!-- Maximum number of backups -->
+			<maxHistory>365</maxHistory>
+		</rollingPolicy>
+		<encoder>
+			<pattern>[%level] %d [%t] [%X{tid}] %c.%M - %m%n</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="ALGO_STRADDLE_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>logs/algo/straddle.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<!-- Daily create new file -->
+			<fileNamePattern>logs/algo/straddle.%d{yyyy-MM-dd}.log
+			</fileNamePattern>
+			<!-- Maximum number of backups -->
+			<maxHistory>365</maxHistory>
+		</rollingPolicy>
+		<encoder>
+			<pattern>[%level] %d [%t] [%X{tid}] %c.%M - %m%n</pattern>
+		</encoder>
+	</appender>
+
+	<logger name="org.jboss.logging" level="INFO">
+		<appender-ref ref="DAILY_ROLL_FILE"/>
+		<appender-ref ref="CONSOLE"/>
+	</logger>
+
+	<logger name="com.fam.vest" level="INFO">
+		<appender-ref ref="DAILY_ROLL_FILE" />
+		<appender-ref ref="CONSOLE" />
+	</logger>
+
+	<logger name="org.springframework" level="INFO">
+		<appender-ref ref="DAILY_ROLL_FILE" />
+		<appender-ref ref="CONSOLE" />
+	</logger>
+
+	<logger name="ALGO_STRADDLE_LOGGER" level="INFO" additivity="false">
+		<appender-ref ref="ALGO_STRADDLE_FILE" />
+	</logger>
+
+</configuration>

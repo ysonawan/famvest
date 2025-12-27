@@ -1,0 +1,12 @@
+<div class="flex items-center gap-2">
+  <button (click)="handleClick(action, row)"
+          [ngClass]="buttonStyle()"
+          [matTooltip]=title
+          class="px-2 py-1 rounded-md disabled:bg-gray-300 disabled:cursor-not-allowed transition-all flex items-center ml-2"
+  >
+    <fa-icon [icon]="icon" [ngClass]="buttonColor()"></fa-icon>
+    <span class="ml-3 text-sm font-medium" *ngIf="label">
+      {{label}}
+    </span>
+  </button>
+</div>

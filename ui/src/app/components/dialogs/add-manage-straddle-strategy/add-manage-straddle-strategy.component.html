@@ -1,0 +1,211 @@
+<div
+  cdkDrag
+  cdkDragRootElement=".cdk-overlay-pane"
+  class="min-w-[300px] sm:min-w-[500px] w-full max-w-3xl mx-auto rounded-md shadow-sm overflow-hidden text-gray-700 bg-white"
+>
+  <!-- Header -->
+  <div cdkDragHandle class="flex items-center justify-between p-4 border-b cursor-move">
+     <span class="text-lg font-medium text-gray-600">{{ isEditMode ? 'Edit' : 'Create' }} Straddle Strategy</span>
+  </div>
+
+  <!-- Body -->
+  <div class="max-h-screen overflow-auto sm:overflow-visible">
+  <div class="p-4">
+    <form [formGroup]="straddleForm" (ngSubmit)="submit()" class="space-y-3">
+
+      <!-- Grid Layout -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+        <!-- Trading Account User ID -->
+        <div>
+          <label class="block text-sm">Trading Account <span class="text-red-500">*</span></label>
+          <select formControlName="userId"
+                  class="form-control" required >
+            <option value="" disabled>Select Account</option>
+            <option *ngFor="let user of users" [value]="user.userId">
+              {{ user.name }} - {{ user.userId }}
+            </option>
+          </select>
+          <p *ngIf="straddleForm.get('userId')?.touched && straddleForm.get('userId')?.invalid"
+             class="text-red-500 text-sm mt-1">Trading Account is required.</p>
+        </div>
+
+        <!-- Side -->
+        <div>
+          <label class="block text-sm">Side <span class="text-red-500">*</span></label>
+          <select formControlName="side" class="form-control" required>
+            <option value="SHORT">SHORT</option>
+            <option value="LONG">LONG</option>
+          </select>
+          <p *ngIf="straddleForm.get('side')?.touched && straddleForm.get('side')?.invalid"
+             class="text-red-500 text-sm mt-1">Side is required.</p>
+        </div>
+
+        <!-- Instrument -->
+        <div>
+          <label class="block text-sm">Instrument <span class="text-red-500">*</span></label>
+          <select formControlName="instrument" class="form-control" required>
+            <option value="" disabled>Select Instrument</option>
+            <option value="NIFTY 50">NIFTY 50</option>
+            <option value="NIFTY BANK">NIFTY BANK</option>
+            <option value="SENSEX">SENSEX</option>
+          </select>
+          <p *ngIf="straddleForm.get('instrument')?.touched && straddleForm.get('instrument')?.invalid"
+             class="text-red-500 text-sm mt-1">Instrument is required.</p>
+        </div>
+
+        <div>
+          <label class="block text-sm">Underlying Strike Selector <span class="text-red-500">*</span></label>
+          <select formControlName="underlyingStrikeSelector" class="form-control" required>
+            <option selected value="INDEX">INDEX</option>
+            <option value="FUTURE">FUTURE</option>
+          </select>
+          <p *ngIf="straddleForm.get('underlyingStrikeSelector')?.touched && straddleForm.get('underlyingStrikeSelector')?.invalid"
+             class="text-red-500 text-sm mt-1">Underlying Strike Selector is required.</p>
+        </div>
+
+        <div [hidden]="true">
+          <label class="block text-sm">Underlying Segment <span class="text-red-500">*</span></label>
+          <input formControlName="underlyingSegment" type="text" class="form-control" required />
+          <p *ngIf="straddleForm.get('underlyingSegment')?.touched && straddleForm.get('underlyingSegment')?.invalid"
+             class="text-red-500 text-sm mt-1">Underlying Segment is required.</p>
+        </div>
+
+        <!-- Exchange -->
+        <div [hidden]="true">
+          <label class="block text-sm">Exchange <span class="text-red-500">*</span></label>
+          <input formControlName="exchange" type="text" class="form-control" required />
+          <p *ngIf="straddleForm.get('exchange')?.touched && straddleForm.get('exchange')?.invalid"
+             class="text-red-500 text-sm mt-1">Exchange is required.</p>
+        </div>
+
+        <!-- Segment -->
+        <div [hidden]="true">
+          <label class="block text-sm">Trading Segment <span class="text-red-500">*</span></label>
+          <input formControlName="tradingSegment" type="text" class="form-control" required />
+          <p *ngIf="straddleForm.get('tradingSegment')?.touched && straddleForm.get('tradingSegment')?.invalid"
+             class="text-red-500 text-sm mt-1">Trading Segment is required.</p>
+        </div>
+
+        <!-- Index -->
+        <div [hidden]="true">
+          <label class="block text-sm">Index <span class="text-red-500">*</span></label>
+          <input formControlName="index" type="text" class="form-control" required />
+          <p *ngIf="straddleForm.get('index')?.touched && straddleForm.get('index')?.invalid"
+             class="text-red-500 text-sm mt-1">Index is required.</p>
+        </div>
+
+        <!-- Strike Step -->
+        <div>
+          <label class="block text-sm">Strike Step <span class="text-red-500">*</span></label>
+          <select formControlName="strikeStep" class="form-control" required>
+            <option value="50">50</option>
+            <option value="100">100</option>
+            <option value="100">200</option>
+            <option value="500">500</option>
+          </select>
+          <p *ngIf="straddleForm.get('strikeStep')?.touched && straddleForm.get('strikeStep')?.invalid"
+             class="text-red-500 text-sm mt-1">Strike Step is required.</p>
+        </div>
+
+        <!-- Lots -->
+        <div>
+          <label class="block text-sm">Lots <span class="text-red-500">*</span></label>
+          <input formControlName="lots" type="number" min="1" class="form-control" required />
+          <p *ngIf="straddleForm.get('lots')?.touched && straddleForm.get('lots')?.invalid"
+             class="text-red-500 text-sm mt-1">Lots are required.</p>
+        </div>
+
+        <!-- Entry Time -->
+        <div>
+          <label class="block text-sm">Entry Time <span class="text-red-500">*</span></label>
+          <input formControlName="entryTime" type="time" class="form-control" step="1" required />
+          <p *ngIf="straddleForm.get('entryTime')?.touched && straddleForm.get('entryTime')?.invalid"
+             class="text-red-500 text-sm mt-1">Entry Time is required.</p>
+        </div>
+
+        <!-- Exit Time -->
+        <div>
+          <label class="block text-sm">Exit Time <span class="text-red-500">*</span></label>
+          <input formControlName="exitTime" type="time" class="form-control" step="1" required />
+          <p *ngIf="straddleForm.get('exitTime')?.touched && straddleForm.get('exitTime')?.invalid"
+             class="text-red-500 text-sm mt-1">Exit Time is required.</p>
+        </div>
+
+        <!-- Stop Loss -->
+        <div>
+          <label class="block text-sm">Stop Loss <span class="text-red-500">*</span></label>
+          <input formControlName="stopLoss" type="number" step="100" min="100" class="form-control" />
+          <p *ngIf="straddleForm.get('stopLoss')?.touched && straddleForm.get('stopLoss')?.invalid"
+             class="text-red-500 text-sm mt-1">Stop Loss is required.</p>
+        </div>
+
+        <!-- Target -->
+        <div>
+          <label class="block text-sm">Target <span class="text-red-500">*</span></label>
+          <input formControlName="target" type="number" step="100" min="100" class="form-control" />
+          <p *ngIf="straddleForm.get('target')?.touched && straddleForm.get('target')?.invalid"
+             class="text-red-500 text-sm mt-1">Target Loss is required.</p>
+        </div>
+
+        <!-- Expiry Scope -->
+        <div>
+          <label class="block text-sm">Expiry Scope <span class="text-red-500">*</span></label>
+          <select formControlName="expiryScope" class="form-control" required>
+            <option value="CURRENT">Current</option>
+            <option value="NEXT">Next</option>
+          </select>
+          <p *ngIf="straddleForm.get('expiryScope')?.touched && straddleForm.get('expiryScope')?.invalid"
+             class="text-red-500 text-sm mt-1">Expiry Scope is required.</p>
+        </div>
+        <!-- Market Order -->
+        <div>
+          <label class="block text-sm">Order Type <span class="text-red-500">*</span></label>
+          <select formControlName="orderType" class="form-control" required>
+            <option value="MARKET">Market</option>
+            <option value="LIMIT">Limit</option>
+          </select>
+          <p *ngIf="straddleForm.get('orderType')?.touched && straddleForm.get('orderType')?.invalid"
+             class="text-red-500 text-sm mt-1">Order Type is required.</p>
+        </div>
+        <div>
+          <label class="block text-sm">Trade Type <span class="text-red-500">*</span></label>
+          <select formControlName="tradeType" class="form-control" required>
+            <option selected value="PAPER">PAPER</option>
+            <option value="LIVE">LIVE</option>
+          </select>
+          <p *ngIf="straddleForm.get('tradeType')?.touched && straddleForm.get('tradeType')?.invalid"
+             class="text-red-500 text-sm mt-1">Trade Type is required.</p>
+        </div>
+        <div>
+          <label class="block text-sm">Trailing SL<span class="text-red-500">*</span></label>
+          <select formControlName="trailingSl" class="form-control" required>
+            <option selected value="No">No</option>
+            <option value="Yes">Yes</option>
+          </select>
+          <p *ngIf="straddleForm.get('tradeType')?.touched && straddleForm.get('tradeType')?.invalid"
+             class="text-red-500 text-sm mt-1">Trade Type is required.</p>
+        </div>
+        <div class="flex flex-wrap gap-2 mt-2 items-center">
+          <app-small-chip class="mt-3" [text]="straddleForm.get('exchange')?.value" [color]="'gray'"></app-small-chip>
+          <app-small-chip class="mt-3" [text]="straddleForm.get('tradingSegment')?.value" [color]="'gray'"></app-small-chip>
+          <app-small-chip class="mt-3" [text]="straddleForm.get('index')?.value" [color]="'gray'"></app-small-chip>
+          <app-small-chip class="mt-3" [text]="straddleForm.get('underlyingSegment')?.value" [color]="'gray'"></app-small-chip>
+
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-col sm:flex-row gap-3 pt-4">
+        <button type="submit" class="flex-1 py-2 rounded-md text-white bg-blue-600 hover:bg-blue-700 transition">
+          {{ isEditMode ? 'Update' : 'Create' }}
+        </button>
+        <button type="button" (click)="onClose()" class="flex-1 py-2 border rounded-md hover:bg-gray-100">
+          Cancel
+        </button>
+      </div>
+
+    </form>
+  </div>
+  </div>
+</div>

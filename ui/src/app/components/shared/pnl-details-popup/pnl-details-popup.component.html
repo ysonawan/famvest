@@ -1,0 +1,169 @@
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4" (click)="closePopup()">
+  <div
+    cdkDrag
+    class="w-full max-w-3xl sm:min-w-[600px] rounded-md shadow-sm overflow-hidden text-gray-700 bg-white"
+    (click)="$event.stopPropagation()"
+  >
+    <!-- Header with User Filter on Right -->
+    <div cdkDragHandle class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 border-b cursor-move ">
+      <span class="font-medium text-gray-700 text-sm sm:text-base flex-shrink-0">{{ title }}</span>
+      <div class="w-full sm:w-auto sm:min-w-[240px]">
+        <app-user-filter
+          [selectedUserIds]="selectedUserIds"
+          (selectAllUsers)="onSelectAllUsers()"
+          (selectUsers)="onUserSelectionChange($event)"
+        ></app-user-filter>
+      </div>
+    </div>
+
+    <!-- Table Container with Scroll -->
+    <div class="p-2 sm:p-4 max-h-[60vh] sm:max-h-[500px] min-h-[300px] overflow-y-auto overflow-x-auto">
+      <div *ngIf="filteredData.length === 0" class="text-center py-8 sm:py-12 text-gray-500">
+        <svg class="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <p class="text-base sm:text-lg font-medium">No users found</p>
+      </div>
+
+      <!-- Dynamic Table - Desktop View -->
+      <table *ngIf="filteredData.length > 0" class="hidden sm:table w-full text-xs sm:text-sm border-t border-gray-200">
+        <thead class="bg-gray-100 text-gray-600 font-medium sticky top-0 z-10">
+          <tr class="border-b border-gray-200">
+            <th class="px-2 sm:px-4 py-2 text-left bg-gray-100 h-10">User</th>
+            <th
+              *ngFor="let column of columns"
+              class="px-2 sm:px-4 py-2 bg-gray-100 whitespace-nowrap h-10"
+              [ngClass]="{
+                'text-left': getAlignment(column) === 'left',
+                'text-right': getAlignment(column) === 'right',
+                'text-center': getAlignment(column) === 'center'
+              }"
+            >
+              {{ column.label }}
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 text-gray-700">
+          <tr *ngFor="let user of filteredData" class="hover:bg-gray-50">
+            <!-- User Info -->
+            <td class="px-2 sm:px-4 py-2">
+              <div class="flex items-center gap-2 sm:gap-3">
+                <img
+                  [ngSrc]="user.avatarUrl || fallbackAvatarUrl"
+                  [alt]="user.userName"
+                  class="w-6 h-6 sm:w-8 sm:h-8 rounded-full object-cover border-2 border-gray-200 flex-shrink-0"
+                  width="32"
+                  height="32"
+                />
+                <div class="flex flex-col min-w-0">
+                  <span class="font-medium text-gray-900 truncate">{{ user.userName }}</span>
+                  <span class="text-[10px] sm:text-xs text-gray-500 truncate">{{ user.userId }}</span>
+                </div>
+              </div>
+            </td>
+
+            <!-- Dynamic Columns -->
+            <td
+              *ngFor="let column of columns"
+              class="px-2 sm:px-4 py-2 whitespace-nowrap"
+              [ngClass]="{
+                'text-left': getAlignment(column) === 'left',
+                'text-right': getAlignment(column) === 'right',
+                'text-center': getAlignment(column) === 'center'
+              }"
+            >
+              <span [ngClass]="getCellClass(user, column)">
+                {{ getCellValue(user, column) }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+        <!-- Summary Row for Desktop -->
+        <tfoot class="bg-gray-100 border-t border-b border-gray-200">
+          <tr class="font-semibold">
+            <td class="px-2 sm:px-4 py-3 text-left">
+              <span class="text-gray-700 font-bold">Summary</span>
+            </td>
+            <td
+              *ngFor="let column of columns"
+              class="px-2 sm:px-4 py-3 whitespace-nowrap"
+              [ngClass]="{
+                'text-left': getAlignment(column) === 'left',
+                'text-right': getAlignment(column) === 'right',
+                'text-center': getAlignment(column) === 'center'
+              }"
+            >
+              <span [ngClass]="getSummaryClass(column)">
+                {{ getSummaryValue(column) }}
+              </span>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <!-- Card View - Mobile -->
+      <div *ngIf="filteredData.length > 0" class="sm:hidden space-y-3">
+        <div *ngFor="let user of filteredData" class="bg-white border border-gray-200 rounded-md p-3 shadow-sm">
+          <!-- User Info Header -->
+          <div class="flex items-center gap-2 mb-2 pb-2 border-b border-gray-100">
+            <img
+              [ngSrc]="user.avatarUrl || fallbackAvatarUrl"
+              [alt]="user.userName"
+              class="w-10 h-10 rounded-full object-cover border-2 border-gray-200 flex-shrink-0"
+              width="40"
+              height="40"
+            />
+            <div class="flex flex-col min-w-0 flex-1">
+              <span class="font-medium text-gray-900 truncate text-sm">{{ user.userName }}</span>
+              <span class="text-sm text-gray-500 truncate">{{ user.userId }}</span>
+            </div>
+          </div>
+
+          <!-- Data Rows -->
+          <div class="space-y-2">
+            <div *ngFor="let column of columns" class="flex items-center justify-between">
+              <span class="text-sm text-gray-600">{{ column.label }}</span>
+              <span class="text-sm font-medium" [ngClass]="getCellClass(user, column)">
+                {{ getCellValue(user, column) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary Card for Mobile -->
+        <div class="bg-gray-100 border-1 border-gray-200 rounded-md p-3">
+          <div class="flex items-center gap-2 mb-2 pb-2 border-b-2 border-gray-200">
+            <div class="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center flex-shrink-0">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+              </svg>
+            </div>
+            <div class="flex flex-col min-w-0 flex-1">
+              <span class="font-bold text-gray-700 text-sm">Summary</span>
+              <span class="text-xs text-gray-600">Total of {{ filteredData.length }} user(s)</span>
+            </div>
+          </div>
+
+          <!-- Summary Data Rows -->
+          <div class="space-y-2">
+            <div *ngFor="let column of columns" class="flex items-center justify-between">
+              <span class="text-sm text-gray-700 font-medium">{{ column.label }}</span>
+              <span class="text-sm" [ngClass]="getSummaryClass(column)">
+                {{ getSummaryValue(column) }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div cdkDragHandle class="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 border-t cursor-move ">
+      <span class="text-sm sm:text-sm text-gray-600">Showing {{ filteredData.length }} of {{ userData.length }} users</span>
+      <button (click)="closePopup()" class="px-3 sm:px-4 py-1.5 sm:py-2 border rounded-md hover:bg-gray-100 text-sm sm:text-sm">
+        Close
+      </button>
+    </div>
+  </div>
+</div>
+

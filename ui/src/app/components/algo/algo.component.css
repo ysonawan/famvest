@@ -1,0 +1,4 @@
+.page-content {
+  max-height: calc(100vh - var(--header-height, 80px) - 138px);
+  min-height: calc(100vh - var(--header-height, 80px) - 138px);
+}

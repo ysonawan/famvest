@@ -1,0 +1,75 @@
+/* Default for desktop/browser */
+
+.page-content {
+  max-height: calc(100vh - var(--header-height, 80px) - 175px);
+  min-height: calc(100vh - var(--header-height, 80px) - 175px);
+}
+
+.watchlist {
+  position: relative;
+}
+
+.watchlist::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 4px;
+  height: 2px;
+  width: 0%;
+  background-color: #007bff;
+  transition: width 0.3s ease-in-out;
+}
+
+.watchlist:hover::after,
+.watchlist.active-tab::after {
+  width: 100%;
+}
+
+.watchlist.active-tab {
+  background-color: #eef6ff;
+  color: #007bff;
+}
+
+/* Watchlist Tabs Container */
+.watchlist-tabs-container {
+  display: flex;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+}
+
+/* Hide scrollbar while maintaining scrollability */
+.watchlist-tabs-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+.watchlist-tabs-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.watchlist-tabs-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.watchlist-tabs-container::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Firefox scrollbar */
+.watchlist-tabs-container {
+  scrollbar-color: #cbd5e1 transparent;
+  scrollbar-width: thin;
+}
+
+/* Individual Tab */
+.watchlist-tab {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+

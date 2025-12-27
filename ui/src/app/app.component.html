@@ -1,0 +1,29 @@
+<app-header *ngIf="isAuthenticated"></app-header>
+
+<!-- Global background gradient wrapper -->
+<div class="bg-gradient-to-b to-white min-h-screen w-full" [ngClass]="themeClass">
+  <div class="flex w-full min-h-screen text-sm">
+    <!-- Sidebar Watchlist -->
+    <div
+      *ngIf="isAuthenticated && !isWatchlistRoute"
+      [ngClass]="{
+        'w-[25%]': !isWatchlistCollapsed,
+        'w-0': isWatchlistCollapsed
+      }"
+      class="transition-all duration-300 overflow-hidden"
+    >
+      <app-watchlist (collapseChanged)="onCollapseChanged($event)"></app-watchlist>
+    </div>
+
+    <!-- Main Content Area -->
+    <div
+      [ngClass]="{
+        'w-[75%]': !isWatchlistCollapsed && isAuthenticated && !isWatchlistRoute,
+        'w-full': isWatchlistCollapsed || !isAuthenticated || isWatchlistRoute
+      }"
+      class="transition-all duration-300"
+    >
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</div>

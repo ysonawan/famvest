@@ -1,0 +1,225 @@
+<div class="w-full bg-white border border-gray-200 rounded-md shadow-sm">
+  @if (!rows || rows.length === 0) {
+    <div class="flex items-center justify-center py-12 px-4">
+      <p class="text-gray-500 text-center">No IPOs to display</p>
+    </div>
+  } @else {
+    <!-- Table View -->
+    <div>
+      <table class="w-full border-collapse">
+        <thead class="sticky top-0 z-20 bg-gray-100 shadow-sm">
+        <tr class="text-left text-sm font-semibold text-gray-700 uppercase tracking-wider bg-gray-100 border-b border-gray-300">
+          <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left whitespace-nowrap">
+            <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setSort('symbol')">
+              SYMBOL
+              <span class="text-[10px]" *ngIf="getSortIndicator('symbol')">{{ getSortIndicator('symbol') }}</span>
+            </button>
+          </th>
+          <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left whitespace-nowrap">
+            <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setSort('name')">
+              NAME
+              <span class="text-[10px]" *ngIf="getSortIndicator('name')">{{ getSortIndicator('name') }}</span>
+            </button>
+          </th>
+          <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left whitespace-nowrap">
+            <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setSort('type')">
+              TYPE
+              <span class="text-[10px]" *ngIf="getSortIndicator('type')">{{ getSortIndicator('type') }}</span>
+            </button>
+          </th>
+          <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+            <button type="button" class="flex items-center gap-1 w-full justify-end" (click)="setSort('priceRange')">
+              PRICE RANGE
+              <span class="text-[10px]" *ngIf="getSortIndicator('priceRange')">{{ getSortIndicator('priceRange') }}</span>
+            </button>
+          </th>
+          <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left whitespace-nowrap">
+            <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setSort('status')">
+              STATUS
+              <span class="text-[10px]" *ngIf="getSortIndicator('status')">{{ getSortIndicator('status') }}</span>
+            </button>
+          </th>
+          <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left whitespace-nowrap">
+            <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setSort('startDate')">
+              START DATE
+              <span class="text-[10px]" *ngIf="getSortIndicator('startDate')">{{ getSortIndicator('startDate') }}</span>
+            </button>
+          </th>
+          <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left whitespace-nowrap">
+            <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setSort('endDate')">
+              END DATE
+              <span class="text-[10px]" *ngIf="getSortIndicator('endDate')">{{ getSortIndicator('endDate') }}</span>
+            </button>
+          </th>
+          <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left whitespace-nowrap">
+            <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setSort('listingDate')">
+              LISTING DATE
+              <span class="text-[10px]" *ngIf="getSortIndicator('listingDate')">{{ getSortIndicator('listingDate') }}</span>
+            </button>
+          </th>
+          <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-center">ACTIONS</th>
+        </tr>
+        </thead>
+        <tbody class="bg-white">
+        <ng-container *ngFor="let ipo of sortedRows; trackBy: trackById">
+          <tr class="border-b border-gray-200 text-sm text-gray-700 hover:bg-blue-50 transition-colors duration-150">
+
+            <!-- Symbol -->
+            <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">
+              <a [href]="ipo.rhp_link" target="_blank" class="hover:underline text-blue-600 font-medium">
+                {{ ipo.symbol }}
+              </a>
+            </td>
+
+            <!-- Name -->
+            <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">
+              <a [href]="ipo.rhp_link" target="_blank" class="hover:underline  text-sm">
+                {{ ipo.name }}
+              </a>
+            </td>
+
+            <!-- Type -->
+            <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">
+              <app-small-chip
+                [text]="getIpoType(ipo.sub_type)"
+                [color]="'purple'">
+              </app-small-chip>
+            </td>
+
+            <!-- Price Range -->
+            <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+              <span *ngIf="ipo.investor_types.length > 0">₹{{ ipo.investor_types[0].min_price }} - ₹{{ ipo.investor_types[0].max_price }}</span>
+              <span *ngIf="ipo.investor_types.length === 0" class="text-gray-400">TBA</span>
+            </td>
+
+            <!-- Status -->
+            <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">
+              <app-small-chip
+                [text]="ipo.status"
+                [color]="getIpoStatusChipColor(ipo.status)">
+              </app-small-chip>
+            </td>
+
+            <!-- Start Date -->
+            <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap  text-sm">
+              <span *ngIf="ipo.start_at">{{ ipo.start_at | istDate:'date-ordinal' }}</span>
+              <span *ngIf="!ipo.start_at" class="text-gray-400">TBA</span>
+            </td>
+
+            <!-- End Date -->
+            <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap  text-sm">
+              <span *ngIf="ipo.end_at">{{ ipo.end_at | istDate:'date-ordinal' }}</span>
+              <span *ngIf="!ipo.end_at" class="text-gray-400">TBA</span>
+            </td>
+
+            <!-- Listing Date -->
+            <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap  text-sm">
+              <span *ngIf="ipo.listing_date">{{ ipo.listing_date | istDate:'date-ordinal' }}</span>
+              <span *ngIf="!ipo.listing_date" class="text-gray-400">TBA</span>
+            </td>
+
+            <!-- Actions -->
+            <td class="px-2 md:px-4 py-2 md:py-3 text-center whitespace-nowrap">
+              <div class="flex items-center justify-center gap-2">
+                <button
+                  (click)="toggleTimeline(ipo.id)"
+                  class="text-blue-600 hover:underline">
+                  {{ isTimelineExpanded(ipo.id) ? 'Hide' : 'Timeline' }}
+                </button>
+                <button
+                  *ngIf="ipo.status === 'ongoing' || ipo.status === 'preapply'"
+                  (click)="openApplyDialog(ipo)"
+                  class="px-2 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors text-xs font-medium">
+                  Apply
+                </button>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Timeline Row (Collapsible) -->
+          <tr *ngIf="isTimelineExpanded(ipo.id)">
+            <td colspan="9" class="px-2 md:px-4 py-2  border-t border-gray-200">
+              <div class="relative w-full">
+                <!-- Timeline Header -->
+                <h4 class="text-sm font-semibold text-gray-700 mb-4">IPO Timeline</h4>
+
+                <!-- Timeline Items - Horizontal -->
+                <div class="w-full pb-4 overflow-x-auto">
+                  <div class="flex items-start gap-2 md:gap-3 w-full min-w-max md:min-w-full md:justify-between">
+                    <!-- Subscription Start -->
+                    <div *ngIf="ipo.start_at" class="flex flex-col items-center flex-shrink-0 gap-1">
+                      <div class="w-3 h-3 bg-blue-500 rounded-full flex-shrink-0"></div>
+                      <div class="text-gray-700 text-center  whitespace-nowrap">Subscription Opens</div>
+                      <div class="text-gray-500 text-center  whitespace-nowrap">{{ ipo.start_at | istDate:'date-ordinal' }}</div>
+                    </div>
+
+                    <!-- Connector Line -->
+                    <div *ngIf="ipo.start_at && ipo.end_at" class="hidden md:flex items-center flex-1 min-w-2">
+                      <div class="h-0.5 w-full bg-gray-300"></div>
+                    </div>
+
+                    <!-- Subscription End -->
+                    <div *ngIf="ipo.end_at" class="flex flex-col items-center flex-shrink-0 gap-1">
+                      <div class="w-3 h-3 bg-red-500 rounded-full flex-shrink-0"></div>
+                      <div class="text-gray-700 text-center whitespace-nowrap">Subscription Closes</div>
+                      <div class="text-gray-500 text-center whitespace-nowrap">{{ ipo.end_at | istDate:'date-ordinal' }}</div>
+                    </div>
+
+                    <!-- Connector Line -->
+                    <div *ngIf="ipo.end_at && ipo.allotment_finalisation_date" class="hidden md:flex items-center flex-1 min-w-2">
+                      <div class="h-0.5 w-full bg-gray-300"></div>
+                    </div>
+
+                    <!-- Allotment Finalisation -->
+                    <div *ngIf="ipo.allotment_finalisation_date" class="flex flex-col items-center flex-shrink-0 gap-1">
+                      <div class="w-3 h-3 bg-green-500 rounded-full flex-shrink-0"></div>
+                      <div class="text-gray-700 text-center whitespace-nowrap">Allotment</div>
+                      <div class="text-gray-500 text-center whitespace-nowrap">{{ ipo.allotment_finalisation_date | istDate:'date-ordinal' }}</div>
+                    </div>
+
+                    <!-- Connector Line -->
+                    <div *ngIf="ipo.allotment_finalisation_date && ipo.refund_initiation_date" class="hidden md:flex items-center flex-1 min-w-2">
+                      <div class="h-0.5 w-full bg-gray-300"></div>
+                    </div>
+
+                    <!-- Refund Initiation -->
+                    <div *ngIf="ipo.refund_initiation_date" class="flex flex-col items-center flex-shrink-0 gap-1">
+                      <div class="w-3 h-3 bg-orange-500 rounded-full flex-shrink-0"></div>
+                      <div class="text-gray-700 text-center whitespace-nowrap">Refund Initiation</div>
+                      <div class="text-gray-500 text-center whitespace-nowrap">{{ ipo.refund_initiation_date | istDate:'date-ordinal' }}</div>
+                    </div>
+
+                    <!-- Connector Line -->
+                    <div *ngIf="ipo.refund_initiation_date && ipo.demat_transfer_date" class="hidden md:flex items-center flex-1 min-w-2">
+                      <div class="h-0.5 w-full bg-gray-300"></div>
+                    </div>
+
+                    <!-- Demat Transfer -->
+                    <div *ngIf="ipo.demat_transfer_date" class="flex flex-col items-center flex-shrink-0 gap-1">
+                      <div class="w-3 h-3 bg-teal-500 rounded-full flex-shrink-0"></div>
+                      <div class="text-gray-700 text-center whitespace-nowrap">Demat Transfer</div>
+                      <div class="text-gray-500 text-center whitespace-nowrap">{{ ipo.demat_transfer_date | istDate:'date-ordinal' }}</div>
+                    </div>
+
+                    <!-- Connector Line -->
+                    <div *ngIf="ipo.demat_transfer_date && ipo.listing_date" class="hidden md:flex items-center flex-1 min-w-2">
+                      <div class="h-0.5 w-full bg-gray-300"></div>
+                    </div>
+
+                    <!-- Listing Date -->
+                    <div *ngIf="ipo.listing_date" class="flex flex-col items-center flex-shrink-0 gap-1">
+                      <div class="w-3 h-3 bg-green-500 rounded-full flex-shrink-0"></div>
+                      <div class="text-gray-700 text-center whitespace-nowrap">Listing Date</div>
+                      <div class="text-gray-500 text-center whitespace-nowrap">{{ ipo.listing_date | istDate:'date-ordinal' }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </ng-container>
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

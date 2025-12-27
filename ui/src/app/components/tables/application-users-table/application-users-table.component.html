@@ -1,0 +1,57 @@
+<div class="w-full bg-white border border-gray-200 rounded-md shadow-sm">
+  @if (!rows || rows.length === 0) {
+    <div class="flex items-center justify-center py-12 px-4">
+      <p class="text-gray-500 text-center">No users to display</p>
+    </div>
+  } @else {
+    <!-- Desktop: Table View with Horizontal Scroll -->
+    <div class="overflow-x-auto">
+      <table class="w-full border-collapse min-w-max">
+        <thead class="sticky top-0 z-20 bg-gray-100 shadow-sm">
+          <tr class="text-left text-sm font-semibold text-gray-700 uppercase tracking-wider bg-gray-100 border-b border-gray-300">
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left">
+              <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setSort('id')">
+                ID
+                <span class="text-[10px]" *ngIf="getSortIndicator('id')">{{ getSortIndicator('id') }}</span>
+              </button>
+            </th>
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left">
+              <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setSort('userName')">
+                USER NAME
+                <span class="text-[10px]" *ngIf="getSortIndicator('userName')">{{ getSortIndicator('userName') }}</span>
+              </button>
+            </th>
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left">
+              <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setSort('fullName')">
+                FULL NAME
+                <span class="text-[10px]" *ngIf="getSortIndicator('fullName')">{{ getSortIndicator('fullName') }}</span>
+              </button>
+            </th>
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left">
+              <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setSort('role')">
+                ROLE
+                <span class="text-[10px]" *ngIf="getSortIndicator('role')">{{ getSortIndicator('role') }}</span>
+              </button>
+            </th>
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left">
+              <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setSort('createdAt')">
+                CREATION DATE
+                <span class="text-[10px]" *ngIf="getSortIndicator('createdAt')">{{ getSortIndicator('createdAt') }}</span>
+              </button>
+            </th>
+          </tr>
+        </thead>
+        <tbody class="bg-white">
+          <tr *ngFor="let row of sortedRows" class="border-b border-gray-200 text-sm text-gray-700 hover:bg-blue-50 transition-colors duration-150">
+            <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">{{ row.id }}</td>
+            <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">{{ row.userName }}</td>
+            <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">{{ row.fullName }}</td>
+            <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">{{ row.role }}</td>
+            <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">{{ row.createdAt | istDate: 'datetime-ordinal' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+

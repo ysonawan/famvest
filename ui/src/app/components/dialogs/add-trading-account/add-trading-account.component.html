@@ -1,0 +1,86 @@
+<div
+  cdkDrag
+  cdkDragRootElement=".cdk-overlay-pane"
+  class="min-w-[300px] sm:min-w-[500px] w-full max-w-3xl mx-auto rounded-md shadow-sm overflow-hidden text-gray-700 bg-white"
+>
+  <!-- Header -->
+  <div cdkDragHandle class="flex items-center justify-between p-4 border-b cursor-move">
+     <span class="text-lg font-medium text-gray-600">Onboard Trading Account</span>
+  </div>
+
+  <!-- Body -->
+  <div class="p-4">
+    <form [formGroup]="onboardForm" (ngSubmit)="submit()" class="space-y-3">
+      <!-- Nickname -->
+      <div>
+        <label class="block text-sm ">Nickname <span class="text-red-500">*</span></label>
+        <input
+          formControlName="name"
+          type="text"
+          required
+          placeholder="Enter a nickname"
+          class="form-control"
+        />
+        <p *ngIf="onboardForm.get('name')?.touched && onboardForm.get('name')?.invalid"
+           class="text-red-500 text-sm mt-1">Nickname is required.</p>
+      </div>
+
+      <!-- User ID -->
+      <div>
+        <label class="block text-sm ">Trading User ID <span class="text-red-500">*</span></label>
+        <input
+          formControlName="userId"
+          type="text"
+          required
+          (input)="toUpperCase($event)"
+          placeholder="Enter trading user ID"
+          class="form-control"
+        />
+        <p *ngIf="onboardForm.get('userId')?.touched && onboardForm.get('userId')?.invalid"
+           class="text-red-500 text-sm mt-1">Trading User ID is required.</p>
+      </div>
+
+      <!-- Password -->
+      <app-toggle-secret-field
+        [formGroup]="onboardForm"
+        controlName="password"
+        label="Trading Account Password (optional)"
+        placeholder="Enter password (if you want automated login)"
+        [required]="false">
+      </app-toggle-secret-field>
+
+      <!-- TOTP -->
+      <app-toggle-secret-field
+        [formGroup]="onboardForm"
+        controlName="totpKey"
+        label="TOTP Key (optional)"
+        placeholder="Enter TOTP key (if you want automated login)"
+        [required]="false">
+      </app-toggle-secret-field>
+
+      <!-- API Key -->
+      <app-toggle-secret-field
+        [formGroup]="onboardForm"
+        controlName="apiKey"
+        label="API Key"
+        placeholder="Enter API key"
+        [required]="true">
+      </app-toggle-secret-field>
+
+      <!-- API Secret -->
+      <app-toggle-secret-field
+        [formGroup]="onboardForm"
+        controlName="apiSecret"
+        label="API Secret"
+        placeholder="Enter API secret"
+        [required]="true">
+      </app-toggle-secret-field>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-col sm:flex-row gap-3 pt-2">
+        <button type="submit" class="flex-1 py-2 rounded-md text-white bg-blue-600 hover:bg-blue-700 transition">Submit</button>
+        <button type="button" (click)="onClose()" class="flex-1 py-2 border rounded-md hover:bg-gray-100">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>

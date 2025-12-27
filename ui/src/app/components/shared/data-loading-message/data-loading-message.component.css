@@ -1,0 +1,14 @@
+@keyframes loader-bounce {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-6px) scale(1.1);
+  }
+}
+.bounce-dot {
+  animation: loader-bounce 0.6s infinite ease-in-out;
+}
+.bounce-delay-1 { animation-delay: 0s; }
+.bounce-delay-2 { animation-delay: 0.15s; }
+.bounce-delay-3 { animation-delay: 0.3s; }

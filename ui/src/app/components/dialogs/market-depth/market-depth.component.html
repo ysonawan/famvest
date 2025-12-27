@@ -1,0 +1,156 @@
+<div
+  cdkDrag
+  cdkDragRootElement=".cdk-overlay-pane"
+  class="min-w-[300px] sm:min-w-[400px] max-w-full rounded-md shadow-sm overflow-hidden text-gray-700 bg-white"
+>
+  <!-- Header -->
+  <div cdkDragHandle class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-4 border-b cursor-move">
+    <span class="font-medium">{{ title }} <span class="text-xs text-gray-500 font-normal ml-1">{{instrument.exchange}}</span></span>
+    <span class="font-medium text-right sm:text-left" [ngClass]="color(tick.change)">
+      {{ tick.lastTradedPrice | number: '1.2-2' }}
+      <span class="text-sm rounded-md px-1 py-[1px]">
+        {{ tick.change / 100 | percent: '1.2-2' }}
+      </span>
+    </span>
+  </div>
+
+  <!-- Body -->
+  <div class="p-4 space-y-4 text-sm">
+    <!-- Table (Scroll on mobile) -->
+    <div
+      [@expandCollapse]="tick.tradable ? 'expanded' : 'collapsed'"
+      class="overflow-hidden transition-all duration-300"
+    >
+      <div class="overflow-x-auto">
+        <table class="w-full" *ngIf="tick.tradable">
+          <thead class="border-b font-medium">
+          <tr>
+            <th class="text-blue-600 text-left">Bid</th>
+            <th class="text-left">Orders</th>
+            <th class="text-left">Qty</th>
+            <th class="text-right text-red-600">Offer</th>
+            <th class="text-right">Orders</th>
+            <th class="text-right">Qty</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr *ngFor="let index of depthLevels">
+            <td (click)="openOrderDialog(marketDepth.buy[index].price, 'BUY')"
+                class="text-blue-600 hover:underline cursor-pointer">
+              {{ marketDepth.buy[index].price | number: '1.2-2' }}
+            </td>
+            <td>{{ marketDepth.buy[index].orders }}</td>
+            <td [ngClass]="{ 'bg-blue-100 font-semibold': marketDepth.buy[index].quantity === maxBidQty }">
+              {{ marketDepth.buy[index].quantity | number }}
+            </td>
+            <td (click)="openOrderDialog(marketDepth.sell[index].price, 'SELL')"
+                class="text-red-600 text-right hover:underline cursor-pointer">
+              {{ marketDepth.sell[index].price | number: '1.2-2' }}
+            </td>
+            <td class="text-right">{{ marketDepth.sell[index].orders }}</td>
+            <td class="text-right" [ngClass]="{ 'bg-red-100 font-semibold': marketDepth.sell[index].quantity === maxOfferQty }">
+              {{ marketDepth.sell[index].quantity | number }}
+            </td>
+          </tr>
+          <tr>
+            <td class="text-blue-600">Total</td>
+            <td></td>
+            <td>{{ tick.totalBuyQuantity | number }}</td>
+            <td class="text-red-600 text-right">Total</td>
+            <td></td>
+            <td class="text-right">{{ tick.totalSellQuantity | number }}</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Summary Toggle -->
+    <div class="flex items-center justify-between" [ngClass]="tick.tradable?'border-t pt-2':'pt-0'">
+      <button (click)="isSummaryCollapsed = !isSummaryCollapsed" class="font-medium hover:underline">Summary</button>
+      <app-action-button
+        *ngIf="tick.tradable"
+        [title]="isSummaryCollapsed ? 'Expand' : 'Collapse'"
+        [action]="isSummaryCollapsed ? 'enlargeDown' : 'collapseUp'"
+        [color]="'gray'"
+        [noIconBackground]="true"
+        (handleAction)="isSummaryCollapsed = !isSummaryCollapsed">
+      </app-action-button>
+    </div>
+
+    <!-- Summary Details -->
+    <div
+      [@expandCollapse]="!isSummaryCollapsed ? 'expanded' : 'collapsed'"
+      class="overflow-hidden transition-all duration-300"
+    >
+      <div class="space-y-4">
+        <div class="grid grid-cols-2 sm:grid-cols-2 gap-2">
+          <div class="flex justify-between"><span>Open</span><span>{{ tick.openPrice | number:'1.2-2' }}</span></div>
+          <div class="flex justify-between"><span>Prev. Close</span><span>{{ tick.closePrice | number:'1.2-2' }}</span></div>
+          <div class="flex justify-between"><span>Low</span><span>{{ tick.lowPrice | number:'1.2-2' }}</span></div>
+          <div class="flex justify-between"><span>High</span><span>{{ tick.highPrice | number:'1.2-2' }}</span></div>
+        </div>
+
+        <!-- Price Range Bar -->
+        <div class="relative h-1 mt-3 mb-6 bg-gray-200">
+          <div
+            class="absolute top-0 h-1 rounded-md"
+            [ngClass]="{
+              'bg-green-500': tick.lastTradedPrice >= tick.closePrice,
+              'bg-red-500': tick.lastTradedPrice < tick.closePrice
+            }"
+            [ngStyle]="{
+              left: getMinPercent(tick.openPrice, tick.lastTradedPrice),
+              width: getWidthBetween(tick.openPrice, tick.lastTradedPrice)
+            }">
+          </div>
+
+          <!-- Markers -->
+          <div
+            class="absolute w-2 h-2 square-full"
+            [ngClass]="{
+              'bg-green-500': tick.openPrice >= tick.closePrice,
+              'bg-red-500': tick.openPrice < tick.closePrice
+            }"
+            [ngStyle]="{
+              left: getPercent(tick.openPrice),
+              top: '50%',
+              transform: 'translate(-50%, -50%)'
+            }"
+            [matTooltip]="'Open'">
+          </div>
+
+          <div
+            class="absolute w-2 h-2 rounded-full"
+            [ngClass]="{
+              'bg-green-500': tick.lastTradedPrice >= tick.closePrice,
+              'bg-red-500': tick.lastTradedPrice < tick.closePrice
+            }"
+            [ngStyle]="{
+              left: getPercent(tick.lastTradedPrice),
+              top: '50%',
+              transform: 'translate(-50%, -50%)'
+            }"
+            [matTooltip]="'Last Price'">
+          </div>
+        </div>
+
+        <!-- Extra Stats -->
+        <div class="grid grid-cols-2 gap-2 border-t pt-2" *ngIf="tick.tradable">
+          <div class="flex justify-between"><span>Volume</span><span>{{ tick.volumeTradedToday | number }}</span></div>
+          <div class="flex justify-between"><span>Avg. Price</span><span>{{ tick.averageTradePrice | number:'1.2-2' }}</span></div>
+          <div class="flex justify-between"><span>LTQ</span><span>{{ tick.lastTradedQuantity }}</span></div>
+          <div class="flex justify-between"><span>LTT</span><span>{{ tick.lastTradedTime | istDate: 'time-no-mod' }}</span></div>
+          <div class="flex justify-between" *ngIf="instrument.lotSize > 1"><span>Lot Size</span><span>{{ instrument.lotSize }}</span></div>
+          <div class="flex justify-between" *ngIf="tick.oi"><span>OI</span><span>{{ tick.oi | number }}</span></div>
+          <div class="flex justify-between" *ngIf="instrument.expiry"><span>Expiry</span><span>{{ instrument.expiry | istDate: 'date-ordinal' }}</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div cdkDragHandle class="flex justify-end border-t px-4 py-3 cursor-move">
+    <button (click)="onClose()" class="px-4 py-2 border rounded hover:bg-gray-100">Close</button>
+  </div>
+</div>

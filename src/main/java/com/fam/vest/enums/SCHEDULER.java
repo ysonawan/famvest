@@ -1,0 +1,39 @@
+package com.fam.vest.enums;
+
+public enum SCHEDULER {
+
+    RELOAD_INSTRUMENTS,
+    RELOAD_WATCHLIST,
+    CLEAR_MF_NAV_CACHE,
+    UPDATE_MF_NAV_CACHE,
+    CAPTURE_ACCOUNT_SNAPSHOT,
+    WEEKLY_PF_REPORT,
+    MONTHLY_PF_REPORT,
+    QUARTERLY_PF_REPORT,
+    YEARLY_PF_REPORT,
+    MONTHLY_SIP_REPORT,
+    RESTART_APPLICATION,
+    SCHEDULER_ERROR_NOTIFICATION,
+    RETRIEVE_IPO_DETAILS,
+    OPEN_IPO_NOTIFICATION;
+
+    public static SCHEDULER fromString(String value) {
+        return switch (value.toUpperCase()) {
+            case "RELOAD_INSTRUMENTS" -> RELOAD_INSTRUMENTS;
+            case "RELOAD_WATCHLIST" -> RELOAD_WATCHLIST;
+            case "CLEAR_MF_NAV_CACHE" -> CLEAR_MF_NAV_CACHE;
+            case "UPDATE_MF_NAV_CACHE" -> UPDATE_MF_NAV_CACHE;
+            case "CAPTURE_ACCOUNT_SNAPSHOT" -> CAPTURE_ACCOUNT_SNAPSHOT;
+            case "WEEKLY_PF_REPORT" -> WEEKLY_PF_REPORT;
+            case "MONTHLY_PF_REPORT" -> MONTHLY_PF_REPORT;
+            case "QUARTERLY_PF_REPORT" -> QUARTERLY_PF_REPORT;
+            case "YEARLY_PF_REPORT" -> YEARLY_PF_REPORT;
+            case "MONTHLY_SIP_REPORT" -> MONTHLY_SIP_REPORT;
+            case "RESTART_APPLICATION" -> RESTART_APPLICATION;
+            case "SCHEDULER_ERROR_NOTIFICATION" -> SCHEDULER_ERROR_NOTIFICATION;
+            case "RETRIEVE_IPO_DETAILS" -> RETRIEVE_IPO_DETAILS;
+            case "OPEN_IPO_NOTIFICATION" -> OPEN_IPO_NOTIFICATION;
+            default -> throw new IllegalArgumentException("Invalid SCHEDULER value: " + value);
+        };
+    }
+}

@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 650px;
+            margin: 10px auto;
+            background: #ffffff;
+            padding: 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            padding: 20px 15px;
+            border-radius: 8px 8px 0 0;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 600;
+        }
+        .header p {
+            margin: 6px 0 0 0;
+            font-size: 13px;
+            opacity: 0.95;
+        }
+        .content {
+            padding: 20px 15px;
+        }
+        .greeting {
+            font-size: 15px;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+        .intro {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 4px;
+            color: #856404;
+            font-size: 13px;
+        }
+        .intro strong {
+            color: #664d03;
+        }
+        .section-title {
+            font-size: 17px;
+            color: #2c3e50;
+            margin: 20px 0 12px 0;
+            font-weight: 600;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 6px;
+        }
+        .ipo-card {
+            border: 1px solid #e1e8ed;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background: #ffffff;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: box-shadow 0.3s ease;
+        }
+        .ipo-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .ipo-header {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+            padding: 15px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .ipo-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin: 0 0 6px 0;
+        }
+        .ipo-symbol {
+            display: inline-block;
+            background: #667eea;
+            color: #ffffff;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+        .ipo-type {
+            display: inline-block;
+            background: #764ba2;
+            color: #ffffff;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .ipo-body {
+            padding: 15px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .info-item {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+        }
+        .info-label {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .info-value {
+            font-size: 15px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        .price-highlight {
+            color: #28a745;
+        }
+        .timeline {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 12px;
+        }
+        .timeline-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 10px;
+        }
+        .timeline-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+        .timeline-item:last-child {
+            margin-bottom: 0;
+        }
+        .timeline-dot {
+            width: 8px;
+            height: 8px;
+            background: #667eea;
+            border-radius: 50%;
+            margin-right: 10px;
+            margin-top: 5px;
+            flex-shrink: 0;
+        }
+        .timeline-content {
+            flex: 1;
+        }
+        .timeline-label {
+            color: #6c757d;
+            font-weight: 500;
+        }
+        .timeline-value {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin-top: 8px;
+            font-size: 13px;
+            transition: transform 0.2s ease;
+        }
+        .cta-button:hover {
+            transform: translateY(-2px);
+        }
+        .footer {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #e1e8ed;
+            color: #6c757d;
+            font-size: 13px;
+        }
+        .footer strong {
+            color: #2c3e50;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        .status-ongoing {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-preapply {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        @media (max-width: 600px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            .container {
+                margin: 5px;
+                border-radius: 4px;
+            }
+            .content {
+                padding: 15px 12px;
+            }
+            .header {
+                padding: 15px 12px;
+                border-radius: 4px 4px 0 0;
+            }
+            .header h1 {
+                font-size: 20px;
+            }
+            .header p {
+                font-size: 12px;
+            }
+            .ipo-header {
+                padding: 12px;
+            }
+            .ipo-body {
+                padding: 12px;
+            }
+            .ipo-name {
+                font-size: 16px;
+                margin-bottom: 5px;
+            }
+            .intro {
+                padding: 10px;
+                font-size: 12px;
+            }
+            .section-title {
+                font-size: 16px;
+                margin: 15px 0 10px 0;
+            }
+            .timeline {
+                padding: 10px;
+            }
+            .info-item {
+                padding: 8px;
+            }
+            .cta-button {
+                padding: 10px 18px;
+                font-size: 13px;
+                width: 100%;
+                text-align: center;
+            }
+            .footer {
+                margin-top: 15px;
+                padding-top: 12px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="content">
+        <p class="greeting">Hello <strong th:text="${userName}">Investor</strong>,</p>
+
+        <div class="intro">
+            ⏰ <strong>Action Required!</strong> The following IPOs are <strong>closing in the next 2 days</strong>.
+            If you're interested in applying, make sure you don't miss the deadline.
+        </div>
+
+        <h2 class="section-title">📊 Closing Soon IPOs</h2>
+
+        <div th:each="ipo : ${liveIpos}">
+            <div class="ipo-card">
+                <div class="ipo-header">
+                    <h3 class="ipo-name" th:text="${ipo.name}">Excelsoft Technologies</h3>
+                    <div>
+                        <span class="ipo-symbol" th:text="${ipo.symbol}">EXCELSOFT</span>
+                        <span class="ipo-type" th:text="${ipo.subType}">IPO</span>
+                    </div>
+                </div>
+
+                <div class="ipo-body">
+                    <div class="info-grid">
+                        <!-- Price Range -->
+                        <div class="info-item" th:if="${ipo.investorTypes != null and !ipo.investorTypes.isEmpty()}">
+                            <div class="info-label">Price Range</div>
+                            <div class="info-value price-highlight">
+                                ₹<span th:text="${ipo.investorTypes[0].minPrice}">114</span> -
+                                ₹<span th:text="${ipo.investorTypes[0].maxPrice}">120</span>
+                            </div>
+                        </div>
+
+                        <!-- Min Investment -->
+                        <div class="info-item" th:if="${ipo.investorTypes != null and !ipo.investorTypes.isEmpty()}">
+                            <div class="info-label">Min Investment</div>
+                            <div class="info-value">
+                                ₹<span th:text="${#numbers.formatInteger(ipo.investorTypes[0].minInvestmentAmount, 0, 'COMMA')}">14,250</span>
+                            </div>
+                        </div>
+
+                        <!-- Lot Size -->
+                        <div class="info-item">
+                            <div class="info-label">Lot Size</div>
+                            <div class="info-value" th:text="${ipo.lotSize}">125</div>
+                        </div>
+
+                        <!-- Issue Size -->
+                        <div class="info-item">
+                            <div class="info-label">Issue Size</div>
+                            <div class="info-value">
+                                <span th:if="${ipo.issueSize >= 10000000}"
+                                      th:text="${#numbers.formatDecimal(ipo.issueSize / 10000000, 1, 2)} + ' Cr'">4.17 Cr</span>
+                                <span th:if="${ipo.issueSize < 10000000 and ipo.issueSize >= 100000}"
+                                      th:text="${#numbers.formatDecimal(ipo.issueSize / 100000, 1, 2)} + ' L'">41.67 L</span>
+                                <span th:if="${ipo.issueSize < 100000}"
+                                      th:text="${#numbers.formatInteger(ipo.issueSize, 0, 'COMMA')}">41666666</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Timeline -->
+                    <div class="timeline">
+                        <div class="timeline-title">📅 Important Dates</div>
+
+                        <div class="timeline-item" th:if="${ipo.startAt != null}">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <span class="timeline-label">Subscription Opens:</span>
+                                <span class="timeline-value" th:text="${#strings.substring(ipo.startAt, 0, 10)}">2025-11-19</span>
+                            </div>
+                        </div>
+
+                        <div class="timeline-item" th:if="${ipo.endAt != null}">
+                            <div class="timeline-dot" style="background: #dc3545;"></div>
+                            <div class="timeline-content">
+                                <span class="timeline-label">Subscription Closes:</span>
+                                <span class="timeline-value" th:text="${#strings.substring(ipo.endAt, 0, 10)}">2025-11-21</span>
+                            </div>
+                        </div>
+
+                        <div class="timeline-item" th:if="${ipo.allotmentFinalisationDate != null}">
+                            <div class="timeline-dot" style="background: #6f42c1;"></div>
+                            <div class="timeline-content">
+                                <span class="timeline-label">Allotment:</span>
+                                <span class="timeline-value" th:text="${ipo.allotmentFinalisationDate}">2025-11-24</span>
+                            </div>
+                        </div>
+
+                        <div class="timeline-item" th:if="${ipo.listingDate != null}">
+                            <div class="timeline-dot" style="background: #28a745;"></div>
+                            <div class="timeline-content">
+                                <span class="timeline-label">Listing Date:</span>
+                                <span class="timeline-value" th:text="${ipo.listingDate}">2025-11-26</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CTA Button -->
+                    <div th:if="${ipo.rhpLink != null}" style="text-align: center;">
+                        <a th:href="${ipo.rhpLink}" class="cta-button" target="_blank">
+                            📄 View Details & Apply
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>
+                💡 <strong>Remember:</strong> Always do your own research before investing.
+                Past performance is not indicative of future results.
+            </p>
+            <p>Happy Investing!<br/><strong>The FamVest App Team</strong></p>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+

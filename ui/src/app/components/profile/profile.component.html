@@ -1,0 +1,435 @@
+<div class="page-container">
+  <!-- Main Content -->
+  <div class="">
+    <!-- Loading State -->
+    <div *ngIf="isLoadingProfile" class="flex flex-col items-center justify-center py-16">
+      <fa-icon [icon]="faSpinner" class="text-4xl text-blue-500 animate-spin mb-4"></fa-icon>
+      <p class="text-gray-600">Loading your profile...</p>
+    </div>
+
+
+    <!-- Content Tabs -->
+    <div *ngIf="!isLoadingProfile && profile" class="space-y-6">
+      <div class="flex items-center justify-between border-b border-gray-200 mb-4">
+        <!-- Left: Tab buttons -->
+        <div class="flex gap-1">
+          <div *ngFor="let tab of tabs"
+               (click)="setActiveTab(tab)"
+               [class.active-tab]="tab === activeTab"
+               [class.text-gray-700]="tab !== activeTab"
+               class="tab-category cursor-pointer pb-2 px-4 py-2 rounded-md transition hover:bg-gray-100 hover:text-blue-500 relative"
+          >
+            {{ tab }}
+            <span
+              *ngIf="tab === activeTab" class="absolute left-0 bottom-1 h-0.5 w-0 bg-blue-500 transition-all"
+            ></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile & Password Section (Merged) -->
+      <div *ngIf="activeTab === 'Profile'" class="animate-fade-in">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Left Side: Profile Update -->
+          <div class="bg-white rounded-md shadow-md p-6 md:p-6 border border-gray-100 transition-shadow">
+            <div class="mb-6">
+              <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                <span class="text-blue-600">👤</span>
+                Profile Information
+              </h2>
+              <p class="text-sm text-gray-500 mt-1">Update your account details</p>
+            </div>
+
+            <form [formGroup]="profileForm" (ngSubmit)="onUpdateProfile()" class="space-y-6">
+              <!-- Full Name Field -->
+              <div>
+                <label for="fullName" class="block text-sm text-gray-700">
+                  Full Name
+                </label>
+                <input
+                  id="fullName"
+                  type="text"
+                  formControlName="fullName"
+                  placeholder="Enter your full name"
+                  class="form-control"
+                />
+                <div *ngIf="profileForm.get('fullName')?.touched && profileForm.get('fullName')?.invalid" class="mt-1.5 text-sm text-red-600 space-y-0.5">
+                  <p *ngIf="profileForm.get('fullName')?.hasError('required')">Full name is required</p>
+                  <p *ngIf="profileForm.get('fullName')?.hasError('minlength')">Full name must be at least 2 characters</p>
+                </div>
+              </div>
+
+              <!-- Username Field -->
+              <div>
+                <label for="userName" class="block text-sm  text-gray-700">
+                  Username
+                </label>
+                <input
+                  id="userName"
+                  type="text"
+                  formControlName="userName"
+                  placeholder="Enter your username"
+                  class="form-control mb-2"
+                />
+                <p class="mt-2 text-sm text-amber-600 flex items-center gap-1.5">
+                  <span>⚠️</span>
+                  <span>You will be logged out after changing the username</span>
+                </p>
+                <div *ngIf="profileForm.get('userName')?.touched && profileForm.get('userName')?.invalid" class="mt-1.5 text-sm text-red-600 space-y-0.5">
+                  <p *ngIf="profileForm.get('userName')?.hasError('required')">Username is required</p>
+                  <p *ngIf="profileForm.get('userName')?.hasError('minlength')">Username must be at least 3 characters</p>
+                </div>
+              </div>
+
+              <!-- Account Info (Read-only) -->
+              <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-md p-4 border border-blue-200">
+                <h3 class="font-semibold text-gray-900 mb-3 text-sm">Account Details</h3>
+                <div class="space-y-2">
+                  <div class="flex justify-between items-center">
+                    <span class="text-gray-600 text-sm font-medium">Role:</span>
+                    <span class="text-gray-900 text-sm ">{{ profile.role }}</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-gray-600 text-sm font-medium">Created:</span>
+                    <span class="text-gray-900 text-sm">{{ profile.createdAt | istDate: 'datetime-ordinal' }}</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-gray-600 text-sm font-medium">Last Updated:</span>
+                    <span class="text-gray-900 text-sm">{{ profile.updatedAt | istDate: 'datetime-ordinal' }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Submit Button -->
+              <div class="pt-1">
+                <button
+                  type="submit"
+                  [disabled]="isUpdatingProfile || profileForm.invalid"
+                  class="w-full px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center gap-2 text-sm shadow-md hover:shadow-lg"
+                >
+                  <fa-icon *ngIf="!isUpdatingProfile" [icon]="faCheck"></fa-icon>
+                  <fa-icon *ngIf="isUpdatingProfile" [icon]="faSpinner" class="animate-spin"></fa-icon>
+                  {{ isUpdatingProfile ? 'Updating...' : 'Update Profile' }}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Right Side: Password Update -->
+          <div class="bg-white rounded-md shadow-md p-6 md:p-6 border border-gray-100 transition-shadow">
+            <div class="mb-6">
+              <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                <span class="text-orange-600">🔒</span>
+                Change Password
+              </h2>
+              <p class="text-sm text-gray-500 mt-1">Secure your account with a new password</p>
+            </div>
+
+            <form [formGroup]="passwordForm" (ngSubmit)="onChangePassword()" class="space-y-6">
+              <!-- Old Password Field -->
+              <div>
+                <label for="oldPassword" class="block text-sm text-gray-700">
+                  Current Password
+                </label>
+                <div class="relative">
+                  <input
+                    id="oldPassword"
+                    [type]="showOldPassword ? 'text' : 'password'"
+                    formControlName="oldPassword"
+                    placeholder="Enter your current password"
+                    class="form-control"
+                  />
+                  <button
+                    type="button"
+                    (click)="togglePasswordVisibility('old')"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition"
+                  >
+                    <fa-icon [icon]="showOldPassword ? faEyeSlash : faEye" class="text-lg"></fa-icon>
+                  </button>
+                </div>
+                <div *ngIf="passwordForm.get('oldPassword')?.touched && passwordForm.get('oldPassword')?.invalid" class="mt-1.5 text-sm text-red-600 space-y-0.5">
+                  <p *ngIf="passwordForm.get('oldPassword')?.hasError('required')">Current password is required</p>
+                  <p *ngIf="passwordForm.get('oldPassword')?.hasError('minlength')">Password must be at least 6 characters</p>
+                </div>
+              </div>
+
+              <!-- New Password Field -->
+              <div>
+                <label for="newPassword" class="block text-sm text-gray-700">
+                  New Password
+                </label>
+                <div class="relative">
+                  <input
+                    id="newPassword"
+                    [type]="showNewPassword ? 'text' : 'password'"
+                    formControlName="newPassword"
+                    placeholder="Enter your new password"
+                    class="form-control"
+                  />
+                  <button
+                    type="button"
+                    (click)="togglePasswordVisibility('new')"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition"
+                  >
+                    <fa-icon [icon]="showNewPassword ? faEyeSlash : faEye" class="text-lg"></fa-icon>
+                  </button>
+                </div>
+                <div *ngIf="passwordForm.get('newPassword')?.touched && passwordForm.get('newPassword')?.invalid" class="mt-1.5 text-sm text-red-600 space-y-0.5">
+                  <p *ngIf="passwordForm.get('newPassword')?.hasError('required')">New password is required</p>
+                  <p *ngIf="passwordForm.get('newPassword')?.hasError('minlength')">Password must be at least 6 characters</p>
+                </div>
+              </div>
+
+              <!-- Confirm Password Field -->
+              <div>
+                <label for="confirmPassword" class="block text-sm text-gray-700">
+                  Confirm Password
+                </label>
+                <div class="relative">
+                  <input
+                    id="confirmPassword"
+                    [type]="showConfirmPassword ? 'text' : 'password'"
+                    formControlName="confirmPassword"
+                    placeholder="Confirm your new password"
+                    class="form-control"
+                  />
+                  <button
+                    type="button"
+                    (click)="togglePasswordVisibility('confirm')"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition"
+                  >
+                    <fa-icon [icon]="showConfirmPassword ? faEyeSlash : faEye" class="text-lg"></fa-icon>
+                  </button>
+                </div>
+                <div *ngIf="passwordForm.touched && (passwordForm.get('confirmPassword')?.invalid || passwordForm.hasError('passwordMismatch'))" class="mt-1.5 text-sm text-red-600 space-y-0.5">
+                  <p *ngIf="passwordForm.get('confirmPassword')?.hasError('required')">Please confirm your password</p>
+                  <p *ngIf="passwordForm.hasError('passwordMismatch')">Passwords do not match</p>
+                </div>
+              </div>
+
+              <!-- Password Requirements -->
+              <div class="bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-200 rounded-md p-4">
+                <h3 class="font-semibold text-orange-900 text-sm flex items-center gap-2">
+                  Password Requirements
+                </h3>
+                <ul class="text-sm text-orange-800 space-y-2">
+                  <li class="flex items-center gap-2">
+                    <span class="text-green-600 font-bold">✓</span>
+                    <span>Password must be between 8 and 20 characters</span>
+                  </li>
+                  <li class="flex items-center gap-2">
+                    <span class="text-green-600 font-bold">✓</span>
+                    <span>New Password and Confirm must match</span>
+                  </li>
+                  <li class="flex items-center gap-2">
+                    <span class="text-amber-600 font-bold">⚠</span>
+                    <span>You will be logged out after changing the password</span>
+                  </li>
+                </ul>
+              </div>
+
+              <!-- Submit Button -->
+              <div class="pt-1">
+                <button
+                  type="submit"
+                  [disabled]="isChangingPassword || passwordForm.invalid"
+                  class="w-full px-6 py-3 bg-orange-600 text-white rounded-md hover:bg-orange-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center gap-2 text-sm shadow-md hover:shadow-lg"
+                >
+                  <fa-icon *ngIf="!isChangingPassword" [icon]="faCheck"></fa-icon>
+                  <fa-icon *ngIf="isChangingPassword" [icon]="faSpinner" class="animate-spin"></fa-icon>
+                  {{ isChangingPassword ? 'Changing...' : 'Change Password' }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trading Accounts Tab -->
+      <div *ngIf="activeTab === 'Trading Accounts'" class="animate-fade-in">
+        <div *ngIf="!errorMessage" class="mb-4 flex justify-between items-center flex-wrap gap-2">
+
+          <!-- Left-aligned Refresh Button -->
+          <div class="flex gap-2">
+            <button
+              (click)="refreshTradingAccounts()"
+              class="text-sm text-blue-600 hover:underline focus:outline-none flex items-center"
+              [disabled]="isTradingAccountsRefreshing"
+            >
+              <fa-icon [icon]="isTradingAccountsRefreshing ? faSpinner : faRefresh" [class.fa-spin]="isTradingAccountsRefreshing" class="mr-1"></fa-icon>
+              <span>{{ isTradingAccountsRefreshing ? 'Loading' : 'Refresh' }}</span>
+            </button>
+            <button (click)="renewTokensForAll()"
+                    class="text-sm text-blue-600 hover:underline focus:outline-none flex items-center"
+                    [disabled]="isRenewingTokens" *ngIf="users.length > 0">
+
+              <fa-icon *ngIf="!isRenewingTokens" [icon]="faRightToBracket" class="mr-1"></fa-icon>
+              <fa-icon *ngIf="isRenewingTokens" [icon]="faSpinner" class="fa-spin mr-1"></fa-icon>
+              <span>Renew All Tokens</span>
+            </button>
+          </div>
+
+          <!-- Right-aligned Renew + Onboard Buttons -->
+          <div class="flex gap-2">
+            <button (click)="onboardTradingAccount()"
+                    matTooltip="Onboard Trading Account"
+                    class="px-3 py-2 rounded-md bg-green-500 text-white hover:bg-green-600 shadow-sm transition-all flex items-center gap-2">
+              <fa-icon [icon]="faUserPlus" class="text-white"></fa-icon>
+            </button>
+          </div>
+        </div>
+
+        <div class="w-full bg-white border border-gray-200 rounded-md shadow-sm">
+          @if (!users || users.length === 0) {
+            <div class="flex items-center justify-center py-12 px-4">
+              <p class="text-gray-500 text-center">No trading accounts to display</p>
+            </div>
+          } @else {
+            <div class="overflow-x-auto">
+              <table class="w-full border-collapse min-w-max">
+                <thead class="sticky top-0 z-20 bg-gray-100 shadow-sm">
+                  <tr class="text-left text-sm font-semibold text-gray-700 uppercase tracking-wider bg-gray-100 border-b border-gray-300">
+                    <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left">
+                      <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setTradingAccountsSort('user')">
+                        USER
+                        <span class="text-[10px]" *ngIf="getTradingAccountsSortIndicator('user')">{{ getTradingAccountsSortIndicator('user') }}</span>
+                      </button>
+                    </th>
+                    <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left">
+                      <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setTradingAccountsSort('userName')">
+                        FULL NAME
+                        <span class="text-[10px]" *ngIf="getTradingAccountsSortIndicator('userName')">{{ getTradingAccountsSortIndicator('userName') }}</span>
+                      </button>
+                    </th>
+                    <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left">
+                      <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setTradingAccountsSort('userId')">
+                        USER ID
+                        <span class="text-[10px]" *ngIf="getTradingAccountsSortIndicator('userId')">{{ getTradingAccountsSortIndicator('userId') }}</span>
+                      </button>
+                    </th>
+                    <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left">
+                      <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setTradingAccountsSort('tokenStatus')">
+                        TOKEN STATUS
+                        <span class="text-[10px]" *ngIf="getTradingAccountsSortIndicator('tokenStatus')">{{ getTradingAccountsSortIndicator('tokenStatus') }}</span>
+                      </button>
+                    </th>
+                    <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left">
+                      TOTP
+                    </th>
+                    <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-center">ACTION</th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white">
+                  <tr *ngFor="let row of sortedUsers" class="border-b border-gray-200 text-sm text-gray-700 hover:bg-blue-50 transition-colors duration-150" [ngClass]="{ 'text-red-500 hover:text-red-600': !row.active }">
+                    <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">
+                      <div class="flex items-center space-x-2">
+                        <img [ngSrc]="row.profile?.avatarURL ?? fallbackAvatarUrl" width="32" height="32"
+                             alt="{{ row.name }}"
+                             class="object-cover border border-gray-300 shadow-sm rounded" />
+                        <span>{{ row.name }}</span>
+                      </div>
+                    </td>
+                    <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">{{ row.profile?.userName || '' }}</td>
+                    <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">{{ row.userId }}</td>
+                    <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">
+                      <app-small-chip [text]="row.tokenStatus" [color]="getTokenStatusColor(row.tokenStatus)"></app-small-chip>
+                    </td>
+                    <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">
+                      <div class="flex items-center gap-2">
+                        @if (getTotpDisplayData(row.userId)) {
+                          <app-small-chip class="cursor-pointer text-sm" [matTooltip]="'Click to copy TOTP'" (click)="copyTotpToClipboard(row.userId, $event)" [text]="(getTotpDisplayData(row.userId)?.value || '')" [color]="'blue'"></app-small-chip>
+                          <div class="text-xs text-gray-500 font-medium min-w-[28px] text-center">
+                            {{ getTotpDisplayData(row.userId)?.timeRemaining }}s
+                          </div>
+                        } @else {
+                          <div class="text-xs text-gray-400">Loading...</div>
+                        }
+                      </div>
+                    </td>
+                    <td class="px-2 md:px-4 py-2 md:py-3 text-center whitespace-nowrap">
+                      <app-action-menu
+                        [row]="row"
+                        [actions]="getActionButtons(row)"
+                        (handleAction)="handleAction($event)">
+                      </app-action-menu>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+
+      </div>
+      <!-- My Preferences Tab -->
+      <div *ngIf="activeTab === 'My Preferences'" class="animate-fade-in">
+        <!-- Table with Order Table styling -->
+        <div class="w-full bg-white border border-gray-200 rounded-md shadow-sm">
+          @if (!userPreferences || userPreferences.length === 0) {
+            <div class="flex items-center justify-center py-12 px-4">
+              <p class="text-gray-500 text-center">No preferences to display</p>
+            </div>
+          } @else {
+            <div class="overflow-x-auto">
+              <table class="w-full border-collapse min-w-max">
+                <thead class="sticky top-0 z-20 bg-gray-100 shadow-sm">
+                  <tr class="text-left text-sm font-semibold text-gray-700 uppercase tracking-wider bg-gray-100 border-b border-gray-300">
+                    <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left">
+                      <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setPreferencesSort('displayName')">
+                        PREFERENCE
+                        <span class="text-[10px]" *ngIf="getPreferencesSortIndicator('displayName')">{{ getPreferencesSortIndicator('displayName') }}</span>
+                      </button>
+                    </th>
+                    <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left">
+                      <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setPreferencesSort('description')">
+                        DESCRIPTION
+                        <span class="text-[10px]" *ngIf="getPreferencesSortIndicator('description')">{{ getPreferencesSortIndicator('description') }}</span>
+                      </button>
+                    </th>
+                    <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left">
+                      <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setPreferencesSort('value')">
+                        CURRENT VALUE
+                        <span class="text-[10px]" *ngIf="getPreferencesSortIndicator('value')">{{ getPreferencesSortIndicator('value') }}</span>
+                      </button>
+                    </th>
+                    <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left">UPDATE</th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white">
+                  <tr *ngFor="let pref of sortedUserPreferences; trackBy: trackById" class="border-b border-gray-200 text-sm text-gray-700 hover:bg-blue-50 transition-colors duration-150">
+                    <!-- Name with icon -->
+                    <td class="px-2 md:px-4 py-2 md:py-3 uppercase whitespace-nowrap">
+                      <div class="flex items-center space-x-2">
+                        <span class="">{{ pref.displayName }}</span>
+                      </div>
+                    </td>
+
+                    <!-- Description -->
+                    <td class="px-2 md:px-4 py-2 md:py-3 text-gray-500 whitespace-nowrap">
+                      {{ pref.description }}
+                    </td>
+
+                    <!-- Current -->
+                    <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">
+                      <app-small-chip [text]="pref.value" [color]="getPreferenceValueColor(pref.value)"></app-small-chip>
+                    </td>
+
+                    <!-- Update -->
+                    <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">
+                      <select [(ngModel)]="pref.value"
+                              (change)="onChange(pref)"
+                              class="border border-gray-300 rounded-md px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                        <option *ngFor="let opt of pref.allowedValues" [value]="opt">{{ opt }}</option>
+                      </select>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

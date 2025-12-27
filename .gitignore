@@ -1,0 +1,78 @@
+# === Java ===
+*.class
+*.jar
+*.war
+*.ear
+
+# Maven
+/target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+# Gradle
+.gradle/
+build/
+!gradle-wrapper.jar
+
+# Kotlin
+*.kotlin_module
+
+# Logs
+*.log
+
+# === Angular / npm ===
+node_modules/
+dist/
+tmp/
+.angular/
+coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+.pnpm-debug.log*
+
+# Environment files (optional)
+.env
+.env.*
+
+# === IntelliJ IDEA ===
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+!.gitignore
+
+# === OS-specific ===
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon?
+Desktop.ini
+
+# === VS Code (if you use it) ===
+.vscode/
+
+# === Optional: JetBrains IDE System Files ===
+.idea_modules/
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/usage.statistics.xml
+.idea/dictionaries/
+.idea/shelf/
+
+# === Optional: npm cache folders ===
+.cache/
+
+# === Optional: JavaScript build output ===
+*.tsbuildinfo
+
+# === Others ===
+*.swp
+*~
+
+config/*

@@ -1,0 +1,92 @@
+<div class="page-container">
+
+  <div *ngIf="!errorMessage">
+    <div class="flex items-center justify-between border-b border-gray-200 mb-4">
+      <!-- Left: Tab buttons -->
+      <div class="flex gap-1">
+        <div *ngFor="let tab of parentTabs"
+             (click)="setActiveParentTab(tab)"
+             [class.active-tab]="tab === activeParentTab"
+             [class.text-gray-700]="tab !== activeParentTab"
+             class="tab-category cursor-pointer pb-2 px-4 py-2 rounded-md transition hover:bg-gray-100 hover:text-blue-500 relative"
+        >
+          {{ tab }}
+          <!-- Count Badge -->
+          <span
+            class="text-sm gap-1.5 font-semibold pb-0.5 px-2 py-1 rounded-md"
+            [ngClass]="{
+              'bg-blue-100 text-blue-600': tab === activeParentTab,
+              'bg-blue-50 text-blue-500': tab !== activeParentTab
+            }"
+          >
+            {{ parentTabCounts[tab] }}
+          </span>
+          <span
+            *ngIf="tab === activeParentTab" class="absolute left-0 bottom-1 h-0.5 w-0 bg-blue-500 transition-all"
+          ></span>
+        </div>
+      </div>
+    </div>
+    <div *ngIf="!errorMessage && activeParentTab === parentTabs[0]" >
+      <div class="flex items-center justify-between gap-4 w-full mb-2">
+        <!-- Left side: Filter/Sort Component and Create button -->
+        <div class="flex items-center gap-3 flex-shrink-0">
+          <app-tool-bar (handleRefresh)="handleRefreshForStraddles($event)">
+          </app-tool-bar>
+
+          <button
+            (click)="createManageStraddleStrategy(null)"
+            matTooltip="Create Straddle Strategy"
+            class="px-3 py-2 rounded-md bg-green-500 text-white hover:bg-green-600 shadow-sm transition-all flex items-center gap-2">
+            <fa-icon [icon]="faPlus" class="text-white"></fa-icon>
+          </button>
+        </div>
+
+        <!-- Empty div to push user filter and search input to the right -->
+        <div class="flex-1"></div>
+
+        <!-- User Filter - positioned before search input -->
+        <div class="flex-shrink-0">
+          <app-user-filter
+            (selectAllUsers)="onAllUserSelection()"
+            (selectUsers)="onUserSelection($event)"
+            (totalUsers)="captureUsers($event)"
+            [selectedUserIds]="selectedUserIds"
+          ></app-user-filter>
+        </div>
+
+        <!-- Search Input - positioned on the right -->
+        <div class="flex-shrink-0">
+          <app-search-input
+            [placeholder]="'Search straddle strategies by User ID or Instrument'"
+            (inputChange)="onStraddleSearch($event)"
+            [searchTerm]="searchQuery">
+          </app-search-input>
+        </div>
+      </div>
+      <div *ngIf="groupedStraddles.length > 0; else noStraddlesData" class="page-content">
+        <!-- Table -->
+        <app-algo-straddle-strategy-table
+          [groupedStraddles]="groupedStraddles"
+          [fallbackAvatarUrl]="fallbackAvatarUrl"
+          [actions]="straddleActions"
+          (handleClickAction)="handleStraddleActions($event)"
+        ></app-algo-straddle-strategy-table>
+      </div>
+      <ng-template #noStraddlesData>
+        <div class="page-content">
+          <app-note
+            [type]="'warning'"
+            [dismissible]="false"
+            [atCenter]="true"
+          >
+            You don’t have any straddles. Check your filters or search criteria and request token status for the trading accounts.
+          </app-note>
+        </div>
+      </ng-template>
+    </div>
+    <div *ngIf="!errorMessage && activeParentTab === parentTabs[1]">
+
+    </div>
+  </div>
+</div>

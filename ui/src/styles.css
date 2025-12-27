@@ -1,0 +1,221 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Define CSS custom properties globally */
+:root {
+  --header-height: 43px; /* Default fallback value */
+}
+
+@layer components {
+  .form-control {
+    @apply w-full px-3 py-2 rounded-md border border-gray-300 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent mt-1;
+  }
+}
+
+html {
+  font-size: 14px; /* Set your desired default font size */
+}
+body {
+  font-family: 'Roboto', Arial, sans-serif;
+}
+
+/* styles.css */
+input:disabled,
+select:disabled,
+textarea:disabled {
+  background-image: repeating-linear-gradient(
+    45deg,
+    #f3f3f3,
+    #f3f3f3 8px,
+    #fff 8px,
+    #fff 15px
+  );
+  opacity: 1;
+  cursor: not-allowed;
+}
+
+/* Hide scrollbar by default */
+html {
+  overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+}
+
+html::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* Styling for when scrollbars are visible */
+html.show-scrollbar {
+  scrollbar-width: auto; /* Firefox */
+}
+
+html.show-scrollbar::-webkit-scrollbar {
+  display: block;
+  width: 8px;
+}
+
+html.show-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+}
+
+::ng-deep .cdk-overlay-pane {
+  position: absolute !important;
+}
+
+/* Base container with dynamic header spacing */
+.page-container {
+  min-height: 100vh;
+  padding: calc(var(--header-height, 80px) + 1rem) 1rem 1rem;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 1280px; /* Constrains maximum width */
+  width: 100%; /* Ensures it takes available width up to max-width */
+}
+
+/* Main content area with proper scrolling */
+.page-content {
+  max-height: calc(100vh - var(--header-height, 80px) - 200px);
+  min-height: calc(100vh - var(--header-height, 80px) - 200px);
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+/* Responsive adjustments for different screen sizes */
+@media (max-width: 768px) {
+  .page-container {
+    padding-top: calc(var(--header-height, 100px) + 0.5rem);
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    padding-bottom: 80px; /* Add bottom padding for mobile bottom nav */
+  }
+
+  .page-content {
+    max-height: calc(100vh - var(--header-height, 100px) - 180px);
+    min-height: calc(100vh - var(--header-height, 100px) - 180px);
+    padding-bottom: 80px; /* Add bottom padding for mobile bottom nav */
+  }
+}
+
+@media (max-width: 640px) {
+  .page-container {
+    padding-top: calc(var(--header-height, 120px) + 0.5rem);
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+    padding-bottom: 80px; /* Add bottom padding for mobile bottom nav */
+  }
+
+  .page-content {
+    max-height: calc(100vh - var(--header-height, 120px) - 160px);
+    min-height: calc(100vh - var(--header-height, 120px) - 160px);
+    padding-bottom: 80px; /* Add bottom padding for mobile bottom nav */
+  }
+}
+
+/* Ensure smooth transitions when header height changes */
+.page-container,
+.page-content {
+  transition: padding-top 0.2s ease, max-height 0.2s ease, min-height 0.2s ease;
+}
+
+/* Common tab category styles */
+.tab-category {
+  position: relative;
+}
+
+.tab-category::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 4px;
+  height: 2px;
+  width: 0;
+  background-color: #007bff;
+  transition: width 0.3s ease-in-out;
+}
+
+.tab-category:hover::after,
+.tab-category.active-tab::after {
+  width: 100%;
+}
+
+.tab-category.active-tab {
+  background-color: #eef6ff;
+  color: #007bff;
+}
+
+/* Common nav link styles */
+.nav-link {
+  position: relative;
+  cursor: pointer;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 4px;
+  height: 2px;
+  width: 0;
+  background-color: #007bff;
+  transition: width 0.3s ease-in-out;
+}
+
+.nav-link:hover::after,
+.nav-link.active-link::after {
+  width: 100%;
+}
+
+.nav-link.active-link {
+  background-color: #eef6ff;
+  color: #007bff;
+}
+
+/* Active link styling - override for header */
+.active-link {
+  @apply bg-blue-50 text-blue-600;
+}
+
+/* Dropdown active link (no bottom border) */
+.absolute .active-link {
+  border-bottom: none;
+}
+
+/* Scrollbar hide utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Smooth dropdown animation */
+.relative > div {
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile menu improvements */
+@media (max-width: 768px) {
+  .nav-link {
+    font-size: 0.875rem;
+  }
+}
+
+.uppercase th {
+  text-transform: uppercase;
+}
+

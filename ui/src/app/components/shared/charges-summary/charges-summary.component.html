@@ -1,0 +1,73 @@
+<div class="w-full bg-white border border-gray-200 rounded-md shadow-sm flex justify-center mb-2">
+  <div class="w-full bg-white p-2 md:p-4 rounded-md">
+
+    <div class="overflow-hidden transition-all duration-300">
+      <div *ngIf="orders.length > 0; else noCharges" class="flex flex-col lg:flex-row gap-6">
+        <!-- Charges Summary (Left) -->
+        <div class="lg:w-1/3 w-full">
+          <table class="w-full text-sm">
+            <tbody >
+            <tr><td class="py-1 text-gray-600">Brokerage</td><td class="text-right">{{ totalCharges.brokerage | number:'1.2-2' }}</td></tr>
+            <tr><td class="py-1 text-gray-600">STT</td><td class="text-right">{{ totalCharges.stt | number:'1.2-2' }}</td></tr>
+            <tr><td class="py-1 text-gray-600">Stamp Duty</td><td class="text-right">{{ totalCharges.stampDuty | number:'1.2-2' }}</td></tr>
+            <tr><td class="py-1 text-gray-600">Exchange Turnover</td><td class="text-right">{{ totalCharges.exchangeTurnover | number:'1.2-2' }}</td></tr>
+            <tr><td class="py-1 text-gray-600">SEBI Turnover</td><td class="text-right">{{ totalCharges.sebiTurnover | number:'1.2-4' }}</td></tr>
+            <tr><td class="py-1 text-gray-600">GST</td><td class="text-right">{{ totalCharges.gst | number:'1.2-2' }}</td></tr>
+            <tr class="font-semibold border-t border-gray-200">
+              <td class="py-2">Total</td>
+              <td class="text-right">{{ totalCharges.total | number:'1.2-2' }}</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Orders Table (Right) -->
+        <div class="lg:w-2/3 w-full text-gray-700 border border-gray-200 rounded-md">
+          <div class="max-h-64 overflow-y-auto">
+            <table class="w-full border-collapse">
+              <thead  class="sticky top-0 z-20 bg-gray-100 shadow-sm">
+              <tr class="border-b border-gray-200">
+                <th  scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left">INSTRUMENT</th>
+                <th  scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left">QTY</th>
+                <th  scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left">AVG PRICE</th>
+                <th  scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left">CHARGES</th>
+              </tr>
+              </thead>
+              <tbody class="bg-white">
+              <tr *ngFor="let row of orders" class="hover:bg-blue-50 border-b border-gray-200 text-gray-700 ">
+                <td class="px-4 py-2 flex items-center gap-2">
+                  <app-small-chip
+                    [text]="row.contractNote.transactionType"
+                    [color]="getTransactionTypeChipColor(row.contractNote.transactionType)"
+                  ></app-small-chip>
+                  {{ row.displayName }}
+                  <span class="text-xs text-gray-400">{{ row.contractNote.exchange }}</span>
+                </td>
+                <td class="px-4 py-2">{{ row.contractNote.quantity }}</td>
+                <td class="px-4 py-2">{{ row.contractNote.price | number:'1.2-2' }}</td>
+                <td class="px-4 py-2">{{ row.contractNote.charges?.total | number:'1.2-2' }}</td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="mt-2 ml-2 mb-2 text-xs text-gray-500">
+            *The data is an approximation based on the current orderbook and may change in the actual contract note after settlement.
+          </div>
+        </div>
+      </div>
+
+      <ng-template #noCharges>
+        <div class="flex justify-center w-full min-h-[200px] items-center">
+          <app-note
+            [type]="'warning'"
+            [dismissible]="false"
+            [atCenter]="true"
+          >
+            You don't have any completed orders to show charges.
+          </app-note>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>
+

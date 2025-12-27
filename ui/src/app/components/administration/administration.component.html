@@ -1,0 +1,190 @@
+<div class="page-container">
+
+  <!-- Content Area -->
+  <div *ngIf="!((activeTab === 'Application Users' && applicationUsers.length === 0 && isRefreshingUsers)
+               || (activeTab === 'Scheduled Tasks' && scheduledTasks.length === 0 && isRefreshingTasks)
+               || (activeTab === 'Log Viewer' && showLogLoader && filteredLogs.length === 0))" class="space-y-6">
+
+    <!-- Tab Navigation -->
+    <div class="flex items-center justify-between border-b border-gray-200 mb-4">
+      <div class="flex gap-1">
+        <div *ngFor="let tab of tabs"
+             (click)="setActiveTab(tab)"
+             [class.active-tab]="tab === activeTab"
+             [class.text-gray-700]="tab !== activeTab"
+             class="tab-category cursor-pointer pb-2 px-4 py-2 rounded-md transition hover:bg-gray-100 hover:text-blue-500 relative"
+        >
+          {{ tab }}
+          <span
+            *ngIf="tab === activeTab" class="absolute left-0 bottom-1 h-0.5 w-0 bg-blue-500 transition-all"
+          ></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Application Users Tab -->
+    <div *ngIf="activeTab === 'Application Users'" class="animate-fade-in">
+      <button (click)="refreshApplicationUsers()"
+              class="text-sm text-blue-600 hover:underline focus:outline-none flex items-center gap-1 mb-4"
+              [disabled]="isRefreshingUsers"
+      >
+        <fa-icon [icon]="isRefreshingUsers ? faSpinner : faRefresh"
+                 [class.fa-spin]="isRefreshingUsers" class="mr-0.5"></fa-icon>
+        <span>{{ isRefreshingUsers ? 'Loading' : 'Refresh' }}</span>
+      </button>
+      <div *ngIf="applicationUsers.length > 0; else noApplicationUsers" class="page-content">
+        <app-application-users-table [rows]="applicationUsers">
+        </app-application-users-table>
+      </div>
+      <ng-template #noApplicationUsers>
+        <div class="page-content">
+          <app-note
+            [type]="'warning'"
+            [dismissible]="false"
+            [atCenter]="true"
+          >
+            No application users have been onboarded to the application.
+          </app-note>
+        </div>
+      </ng-template>
+    </div>
+
+    <!-- Scheduled Tasks Tab -->
+    <div *ngIf="activeTab === 'Scheduled Tasks'" class="animate-fade-in">
+      <button (click)="refreshScheduledTasks()"
+              class="text-sm text-blue-600 hover:underline focus:outline-none flex items-center gap-1 mb-4"
+              [disabled]="isRefreshingTasks"
+      >
+        <fa-icon [icon]="isRefreshingTasks ? faSpinner : faRefresh"
+                 [class.fa-spin]="isRefreshingTasks" class="mr-0.5"></fa-icon>
+        <span>{{ isRefreshingTasks ? 'Loading' : 'Refresh' }}</span>
+      </button>
+      <div *ngIf="scheduledTasks.length > 0; else noScheduledTasks" class="page-content">
+        <app-scheduled-tasks-table [rows]="scheduledTasks"
+        [actions]="actions"
+        (handleClickAction)="handleAction($event)">
+        </app-scheduled-tasks-table>
+      </div>
+      <ng-template #noScheduledTasks>
+        <div class="page-content">
+          <app-note
+            [type]="'warning'"
+            [dismissible]="false"
+            [atCenter]="true"
+          >
+            No scheduled tasks to display.
+          </app-note>
+        </div>
+      </ng-template>
+    </div>
+
+    <!-- Log Viewer Tab -->
+    <div *ngIf="activeTab === 'Log Viewer'" class="animate-fade-in">
+      <!-- Controls -->
+      <div class="flex flex-col md:flex-row gap-3 md:items-center md:justify-between bg-white p-4 rounded-md border border-gray-200 text-gray-700">
+        <!-- Left side: Log Type and File Dropdowns -->
+        <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+          <!-- Log Type Dropdown -->
+          <select
+            [(ngModel)]="logFileType"
+            (ngModelChange)="onLogFileTypeChange()"
+            class="border px-3 py-1.5 rounded-md text-sm"
+          >
+            <option *ngFor="let type of logFileTypeOptions" [value]="type.value">
+              {{ type.label }}
+            </option>
+          </select>
+
+          <!-- Log File Name Dropdown -->
+          <select
+            [(ngModel)]="logFileName"
+            (ngModelChange)="onLogFileNameChange()"
+            class="border px-3 py-1.5 rounded-md text-sm flex-1 sm:min-w-[200px] "
+          >
+            <option *ngFor="let file of logFileNameOptions" [value]="file.value">
+              {{ file.label }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Right side: Refresh Controls -->
+        <div class="flex items-center gap-3 flex-wrap">
+          <!-- Last Updated Timestamp -->
+          <div class="text-sm text-gray-500 mr-2">Last updated: {{ lastUpdated | date:'shortTime' }}</div>
+
+          <!-- Refresh Options -->
+          <div class="flex items-center gap-2">
+            <label class="inline-flex items-center gap-1 text-sm whitespace-nowrap">
+              <input type="checkbox" [(ngModel)]="autoRefresh" class="form-checkbox" />
+              Auto
+            </label>
+            <select
+              [(ngModel)]="refreshInterval"
+              class="border px-2 py-1.5 rounded-md text-sm"
+              [disabled]="!autoRefresh"
+            >
+              <option [value]="5000">5s</option>
+              <option [value]="10000">10s</option>
+              <option [value]="15000">15s</option>
+              <option [value]="30000">30s</option>
+            </select>
+            <button
+              (click)="refreshLogs()"
+              class="bg-blue-600 text-white px-3 py-1.5 rounded-md text-sm whitespace-nowrap flex-shrink-0 flex items-center gap-1"
+              [disabled]="isRefreshingLogs"
+            >
+              <fa-icon [icon]="isRefreshingLogs ? faSpinner : faRefresh"
+                       [class.fa-spin]="isRefreshingLogs"></fa-icon>
+              Refresh
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search Input -->
+      <div class="flex gap-2 w-full mt-3">
+        <input
+          type="text"
+          placeholder="Search logs..."
+          [(ngModel)]="searchTerm"
+          class="border px-3 py-1.5 rounded-md text-sm w-full"
+        />
+        <button
+          (click)="performSearch()"
+          class="bg-blue-600 text-white px-3 py-1.5 rounded-md text-sm whitespace-nowrap flex-shrink-0"
+        >
+          Search
+        </button>
+      </div>
+
+      <!-- Log Output -->
+      <div #scrollContainer
+        class="bg-black text-green-400 text-sm font-mono p-4 rounded-md min-h-[300px] page-content whitespace-pre-wrap  relative mt-3"
+      >
+        <!-- Loading indicator -->
+        <div *ngIf="showLogLoader" class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-70 z-10">
+          <app-data-loading-message></app-data-loading-message>
+        </div>
+
+        <!-- Content -->
+        <ng-container *ngIf="filteredLogs.length; else noLogsTemplate">
+          <div *ngFor="let line of filteredLogs">{{ line }}</div>
+        </ng-container>
+
+        <ng-template #noLogsTemplate>
+          <div *ngIf="!showLogLoader" class="h-full w-full flex items-center justify-center">
+            <app-note
+              [type]="'warning'"
+              [dismissible]="false"
+              [atCenter]="true"
+            >
+              No logs to display
+            </app-note>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+
+  </div>
+</div>
+

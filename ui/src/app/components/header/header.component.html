@@ -1,0 +1,322 @@
+<div #header class="header fixed top-0 left-0 w-full z-50 bg-white shadow-sm border-b border-gray-200">
+  <!-- Main Header Container -->
+  <div class="mx-auto px-4 py-1">
+    <div class="flex items-center justify-between gap-6">
+
+      <!-- Left Section: Logo + App Name + Tickers -->
+      <div class="flex items-center gap-6 flex-1 min-w-0">
+        <!-- Logo & App Name -->
+        <div class="flex items-center gap-2 flex-shrink-0">
+          <img
+            ngSrc="assets/images/app-logo.jpg"
+            alt="FamVest Logo"
+            class="w-9 h-9 rounded-lg object-contain"
+            width="40"
+            height="40"
+          />
+          <div class="hidden md:flex flex-col justify-center">
+            <span class="text-md font-medium text-gray-800 leading-tight">FamVest</span>
+            <span class="text-sm text-gray-500 leading-tight">Portfolio Manager</span>
+          </div>
+        </div>
+
+        <!-- Index Tickers - Scrollable on mobile -->
+        <div class="flex-1 min-w-0 overflow-x-auto scrollbar-hide">
+          <app-index-ticker [quotes]="indexTickers" [showTickers]="showTickers"></app-index-ticker>
+        </div>
+      </div>
+
+      <!-- Right Section: Navigation -->
+      <nav class="flex items-center gap-1">
+        <!-- Home - Hidden on mobile, visible on desktop -->
+        <a
+          routerLink="/home"
+          routerLinkActive="active-link"
+          matTooltipPosition="below"
+          class="nav-link hidden md:flex items-center gap-2 pb-2 px-4 py-2 text-sm text-gray-700 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-all"
+        >
+          <fa-icon [icon]="faHome" class="text-base"></fa-icon>
+          <span class="hidden lg:inline">Dashboard</span>
+        </a>
+
+        <!-- Holdings -->
+        <a
+          routerLink="/holdings"
+          routerLinkActive="active-link"
+          class="nav-link hidden md:flex items-center pb-2 px-4 py-2 text-sm text-gray-700 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-all"
+        >
+          Holdings
+        </a>
+
+        <!-- Positions -->
+        <a
+          routerLink="/positions"
+          routerLinkActive="active-link"
+          class="nav-link hidden md:flex items-center pb-2 px-4 py-2 text-sm text-gray-700 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-all"
+        >
+          Positions
+        </a>
+
+        <!-- Orders -->
+        <a
+          routerLink="/orders"
+          routerLinkActive="active-link"
+          class="nav-link hidden md:flex items-center pb-2 px-4 py-2 text-sm text-gray-700 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-all"
+        >
+          Orders
+        </a>
+
+        <!-- MF -->
+        <a
+          routerLink="/mf"
+          routerLinkActive="active-link"
+          class="nav-link hidden lg:flex items-center pb-2 px-4 py-2 text-sm text-gray-700 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-all"
+        >
+          Mutual Funds
+        </a>
+
+        <!-- More Menu -->
+        <div class="relative">
+          <button
+            (click)="toggleMoreMenu()"
+            #menuTrigger
+            class="nav-link flex items-center gap-1 pb-2 px-4 py-2 text-sm text-gray-700 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-all"
+            [class.bg-blue-50]="showMoreMenu"
+            [class.text-blue-600]="showMoreMenu"
+          >
+            <span class="md:inline hidden">More</span>
+            <fa-icon
+              [icon]="faChevronDown"
+              class="text-xs transition-transform duration-200"
+              [class.rotate-180]="showMoreMenu"
+            ></fa-icon>
+          </button>
+
+          <div
+            *ngIf="showMoreMenu"
+            class="absolute right-0 mt-2 w-56 bg-white shadow-xl rounded-lg border border-gray-200 py-2 z-50"
+          >
+            <a
+              routerLink="/ipos"
+              routerLinkActive="active-link"
+              class="nav-link hidden lg:flex items-center pb-2 px-4 py-2 text-sm text-gray-700 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-all"
+              (click)="closeMoreMenu()"
+            >
+              IPO
+            </a>
+            <a
+              routerLink="/mf"
+              routerLinkActive="active-link"
+              class="lg:hidden nav-link flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+              (click)="closeMoreMenu()"
+            >
+              <span>Mutual Funds</span>
+            </a>
+            <!-- Algo -->
+            <a
+              routerLink="/algo"
+              routerLinkActive="active-link"
+              class="nav-link hidden lg:flex items-center pb-2 px-4 py-2 text-sm text-gray-700 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-all"
+              (click)="closeMoreMenu()"
+            >
+              Algo
+            </a>
+            <a
+              routerLink="/algo"
+              routerLinkActive="active-link"
+              class="lg:hidden nav-link flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+              (click)="closeMoreMenu()"
+            >
+              <span>Algo</span>
+            </a>
+            <a
+              routerLink="/ipos"
+              routerLinkActive="active-link"
+              class="lg:hidden nav-link flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+              (click)="closeMoreMenu()"
+            >
+              <span>IPO</span>
+            </a>
+
+            <div class="md:hidden border-t border-gray-200 my-2"></div>
+
+            <!-- Always visible in More menu -->
+            <a
+              routerLink="/funds"
+              routerLinkActive="active-link"
+              class="nav-link flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+              (click)="closeMoreMenu()"
+            >
+              <span>Funds</span>
+            </a>
+            <a
+              routerLink="/historical-data"
+              routerLinkActive="active-link"
+              class="nav-link flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+              (click)="closeMoreMenu()"
+            >
+              <span>Historical Data</span>
+            </a>
+
+            <!-- Logout - Only visible on mobile -->
+            <a
+              (click)="logout()"
+              class="md:hidden nav-link flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+            >
+              <fa-icon [icon]="faSignOutAlt" class="w-4"></fa-icon>
+              <span>Logout</span>
+            </a>
+
+            <div *ngIf="isAdmin()" class="md:hidden border-t border-gray-200 my-2"></div>
+
+            <a *ngIf="isAdmin()"
+              routerLink="/administration"
+              routerLinkActive="active-link"
+              class="md:hidden nav-link flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+              (click)="closeMoreMenu()"
+            >
+              <span>Administration</span>
+            </a>
+          </div>
+        </div>
+        <!-- Basket Order - Hidden on mobile, visible on desktop -->
+        <a
+          routerLink="/basket-order"
+          routerLinkActive="active-link"
+          [matTooltip]="'Basket Order'"
+          matTooltipPosition="below"
+          class="nav-link hidden md:flex items-center gap-2 pb-2 px-4 py-2 text-sm text-gray-700 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-all"
+        >
+          <fa-icon [icon]="faCartPlus" class="text-base"></fa-icon>
+        </a>
+
+        <a
+          routerLink="/profile"
+          routerLinkActive="active-link"
+          [matTooltip]="'Add Trading Accounts, Manage Preferences and Update Profile'"
+          matTooltipPosition="below"
+          class="nav-link hidden md:flex items-center gap-2 pb-2 px-4 py-2 text-sm text-gray-700 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-all"
+        >
+          <fa-icon [icon]="faUserTie" class="text-base"></fa-icon>
+        </a>
+
+        <!-- Administration Gear Icon - Only for admins, hidden on mobile -->
+        <a
+          *ngIf="isAdmin()"
+          routerLink="/administration"
+          routerLinkActive="active-link"
+          [matTooltip]="'Administration'"
+          matTooltipPosition="below"
+          class="nav-link hidden md:flex items-center gap-2 pb-2 px-4 py-2 text-sm text-gray-700 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-all"
+        >
+          <fa-icon [icon]="faGear" class="text-base"></fa-icon>
+        </a>
+
+
+        <!-- Feed Status Indicator -->
+        <div
+          [ngClass]="{
+            'bg-green-100 text-green-600': feedStatus === 'live',
+            'bg-red-100 text-red-600': feedStatus === 'disconnected',
+            'bg-yellow-100 text-yellow-600': feedStatus === 'idle'
+          }"
+          class="flex items-center gap-1.5 px-2 py-1 rounded-lg transition-all cursor-default ml-1"
+          [matTooltip]="
+            feedStatus === 'live' ? 'Market is Open' :
+            feedStatus === 'idle' ? 'Market is Closed' :
+            'Market Feed Disconnected'
+          "
+          matTooltipPosition="below"
+        >
+          <fa-icon
+            [icon]="feedStatus === 'live' ? faCircle : faCircleExclamation"
+            class="text-xs"
+            [class.animate-pulse]="feedStatus === 'live'"
+          ></fa-icon>
+          <span class="hidden xl:inline text-xs">
+            {{ feedStatus === 'live' ? 'Open' : feedStatus === 'idle' ? 'Closed' : 'Offline' }}
+          </span>
+        </div>
+        <!-- Logout -->
+        <button
+          (click)="logout()"
+          [matTooltip]="'Logout'"
+          matTooltipPosition="below"
+          class="hidden md:flex items-center gap-2 pb-2 px-4 py-2 text-sm text-red-600 rounded-lg hover:bg-red-50 transition-all ml-1"
+        >
+          <fa-icon [icon]="faSignOutAlt" class="text-base"></fa-icon>
+          <span class="hidden xl:inline">Logout</span>
+        </button>
+      </nav>
+    </div>
+  </div>
+</div>
+
+<!-- Mobile Bottom Navigation - Only visible on mobile -->
+<div class="md:hidden fixed bottom-0 left-0 w-full bg-white shadow-lg border-t border-gray-200 z-50 pb-[env(safe-area-inset-bottom)]">
+  <div class="flex items-center justify-between px-0 py-0">
+    <!-- Home -->
+    <a
+      routerLink="/home"
+      routerLinkActive="!bg-blue-50 !text-blue-600 "
+      class="nav-link flex-1 flex flex-col items-center justify-center gap-1 px-1 py-1.5 rounded-md transition-all text-gray-600 hover:bg-blue-50 hover:text-blue-600"
+    >
+      <fa-icon [icon]="faHome" class="text-lg"></fa-icon>
+      <span class="text-xs">Dashboard</span>
+    </a>
+    <!-- Watchlist -->
+    <a
+      routerLink="/watchlist"
+      routerLinkActive="!bg-blue-50 !text-blue-600"
+      class="nav-link flex-1 flex flex-col items-center justify-center gap-1 px-1 py-1.5 rounded-md transition-all text-gray-600 hover:bg-blue-50 hover:text-blue-600"
+    >
+      <fa-icon [icon]="faStar" class="text-lg"></fa-icon>
+      <span class="text-xs">Watchlist</span>
+    </a>
+    <!-- Holdings -->
+    <a
+      routerLink="/holdings"
+      routerLinkActive="!bg-blue-50 !text-blue-600"
+      class="nav-link flex-1 flex flex-col items-center justify-center gap-1 px-1 py-1.5 rounded-md transition-all text-gray-600 hover:bg-blue-50 hover:text-blue-600"
+    >
+      <fa-icon [icon]="faWallet" class="text-lg"></fa-icon>
+      <span class="text-xs">Holdings</span>
+    </a>
+    <!-- Positions -->
+    <a
+      routerLink="/positions"
+      routerLinkActive="!bg-blue-50 !text-blue-600"
+      class="nav-link flex-1 flex flex-col items-center justify-center gap-1 px-1 py-1.5 rounded-md transition-all text-gray-600 hover:bg-blue-50 hover:text-blue-600"
+    >
+      <fa-icon [icon]="faChartLine" class="text-lg"></fa-icon>
+      <span class="text-xs">Positions</span>
+    </a>
+    <!-- Orders -->
+    <a
+      routerLink="/orders"
+      routerLinkActive="!bg-blue-50 !text-blue-600"
+      class="nav-link flex-1 flex flex-col items-center justify-center gap-1 px-1 py-1.5 rounded-md transition-all text-gray-600 hover:bg-blue-50 hover:text-blue-600"
+    >
+      <fa-icon [icon]="faListCheck" class="text-lg"></fa-icon>
+      <span class="text-xs">Orders</span>
+    </a>
+    <!-- Basket Order -->
+    <a
+      routerLink="/basket-order"
+      routerLinkActive="!bg-blue-50 !text-blue-600"
+      class="nav-link flex-1 flex flex-col items-center justify-center gap-1 px-1 py-1.5 rounded-md transition-all text-gray-600 hover:bg-blue-50 hover:text-blue-600"
+    >
+      <fa-icon [icon]="faCartPlus" class="text-lg"></fa-icon>
+      <span class="text-xs">Basket</span>
+    </a>
+    <!-- Profile -->
+    <a
+      routerLink="/profile"
+      routerLinkActive="!bg-blue-50 !text-blue-600"
+      class="nav-link flex-1 flex flex-col items-center justify-center gap-1 px-1 py-1.5 rounded-md transition-all text-gray-600 hover:bg-blue-50 hover:text-blue-600"
+    >
+      <fa-icon [icon]="faUserTie" class="text-lg"></fa-icon>
+      <span class="text-xs">Profile</span>
+    </a>
+  </div>
+</div>

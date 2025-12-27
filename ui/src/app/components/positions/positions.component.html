@@ -1,0 +1,92 @@
+<div class="page-container">
+
+  <div *ngIf="!errorMessage">
+    <app-position-summary
+      [maxProfit]="maxProfit"
+      [totalPnL]="totalPnL"
+      [daysPnL]="totalDayPnL"
+      [profitLeft]="profitLeft"
+    >
+    </app-position-summary>
+
+    <div class="flex items-center justify-between gap-4 w-full mb-2">
+      <!-- Filter/Sort Component -->
+      <div class="flex-shrink-0">
+        <app-tool-bar
+            [isLoadingData]="isLoadingData"
+            [filterOptions]="filterOptions"
+            [filterSelection]="filterSelection"
+            (filtersChanged)="applyFilters($event)"
+            (handleRefresh)="handleRefresh($event)"
+            [showChartButton]="true"
+            (toggleChart)="toggleChart()"
+            [showChargesButton]="true"
+            (charges)="viewCharges()"
+            [showExitButton]="selectedPositions.length > 0"
+            [exitButtonLabel]="'Exit Selected (' + selectedPositions.length + ')'"
+            (exit)="exitSelectedPositions()">
+        </app-tool-bar>
+      </div>
+
+      <!-- Empty div to push user filter and search input to the right -->
+      <div class="flex-1"></div>
+
+      <!-- User Filter - positioned before search input -->
+      <div class="flex-shrink-0">
+        <app-user-filter
+          (selectAllUsers)="onAllUserSelection()"
+          (selectUsers)="onUserSelection($event)"
+          (totalUsers)="captureUsers($event)"
+          [selectedUserIds]="selectedUserIds" >
+        </app-user-filter>
+      </div>
+
+      <!-- Search Input - positioned on the right -->
+      <div class="flex-shrink-0">
+        <app-search-input
+          [placeholder]="'Search positions by User ID or Instrument'"
+          (inputChange)="onSearch($event)"
+          [searchTerm]="searchQuery" >
+        </app-search-input>
+      </div>
+    </div>
+    <div [@expandCollapse]="showChart ? 'expanded' : 'collapsed'"
+         class="overflow-hidden transition-all duration-300">
+      <app-bar-chart
+        [title]="barChartTitle"
+        [xAxisLabels]="barChartXAxisLabels"
+        [series]="barChartSeries"
+        [legendLabels]="barChartLegendLabels"
+        [chartHeight]="'280'"
+        [showDataZoom]="true"
+      ></app-bar-chart>
+    </div>
+
+    <div [@expandCollapse]="showCharges ? 'expanded' : 'collapsed'"
+         class="overflow-hidden transition-all duration-300">
+      <app-charges-summary>
+      </app-charges-summary>
+    </div>
+
+    <div *ngIf="groupedPositions.length > 0; else noData" class="page-content">
+      <app-positions-table
+        [groupedPositions]="groupedPositionsWithUserInfo"
+        [actions]="actions"
+        [fallbackAvatarUrl]="fallbackAvatarUrl"
+        (handleClickAction)="handleAction($event)"
+        (selectedPositionsChange)="onSelectedPositionsChange($event)">
+      </app-positions-table>
+    </div>
+    <ng-template #noData>
+      <div class="page-content">
+        <app-note
+          [type]="'warning'"
+          [dismissible]="false"
+          [atCenter]="true"
+        >
+          You don't have any active positions at the moment. Check your filters or search criteria and request token status for the trading accounts.
+        </app-note>
+      </div>
+    </ng-template>
+  </div>
+</div>

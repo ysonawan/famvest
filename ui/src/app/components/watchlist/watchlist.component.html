@@ -1,0 +1,161 @@
+<!-- Show toggle when collapsed -->
+<app-action-button
+  *ngIf="canCollapse && isWatchlistCollapsed && !isMobileView"
+  [noIconBackground]="true"
+  [title]="'Show Watchlist'"
+  [action]="'enlargeRight'"
+  [color]="'gray'"
+  (handleAction)="toggleCollapse()"
+  class="fixed top-16 mt-3 left-2 z-50"
+></app-action-button>
+<div
+
+>
+
+<div [@expandCollapse]="!(canCollapse && isWatchlistCollapsed) ? 'expanded' : 'collapsed'"
+     class="relative overflow-hidden transition-all duration-300"
+     [ngClass]="canCollapse ? 'text-sm':'text-sm'" >
+  <div>
+    <div class="page-container">
+      <div class="bg-white border rounded-md shadow-sm flex flex-col min-h-[80vh]">
+
+        <!-- Header -->
+        <div class="p-4 border-b border-gray-200 space-y-2">
+          <!-- Watchlist Name & Actions -->
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center flex-wrap gap-2">
+              <ng-container *ngIf="!isEditingName; else editNameInput">
+                <label
+                  class="text-gray-700 transition"
+                  [ngClass]="{
+                    'cursor-pointer': !isCurrentWatchlistReserved,
+                    'cursor-not-allowed text-gray-400': isCurrentWatchlistReserved,
+                    'underline decoration-dotted decoration-2': isNameHovered && !isCurrentWatchlistReserved
+                  }"
+                  (click)="onWatchlistNameClick()"
+                  (mouseenter)="onWatchlistNameMouseEnter()"
+                  (mouseleave)="onWatchlistNameMouseLeave()"
+                  [matTooltip]="isCurrentWatchlistReserved ? 'This name cannot be edited' : 'Click to edit'"
+                >
+                  {{ getWatchListName() }}
+                </label>
+                <span *ngIf="isNameHovered && !isCurrentWatchlistReserved" class="text-xs text-blue-400">(edit)</span>
+              </ng-container>
+              <ng-template #editNameInput>
+                <input
+                  id="edit-watchlist-name-input"
+                  type="text"
+                  class="border-b border-blue-400 outline-none px-1 py-0.5 text-gray-700"
+                  [(ngModel)]="editWatchlistName"
+                  (blur)="onWatchlistNameBlur()"
+                  (keydown)="onWatchlistNameInputKeydown($event)"
+                />
+              </ng-template>
+              <span class="font-semibold px-2 py-1 rounded bg-blue-50 text-blue-500">
+                {{ getWatchListCount() }}
+              </span>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center gap-2">
+              <app-action-button *ngIf="canCollapse" [noIconBackground]="true" [title]="'Expand Watchlist'" [action]="'expand'" [color]="'gray'" (handleAction)="expand()" class="hover:scale-105 transition"></app-action-button>
+              <app-action-button *ngIf="canCollapse" [noIconBackground]="true" [title]="'Hide Watchlist'" [action]="'collapseLeft'" [color]="'gray'" (handleAction)="toggleCollapse()" class="hover:scale-105 transition"></app-action-button>
+            </div>
+          </div>
+
+          <!-- Watchlist Tabs -->
+          <div class="watchlist-tabs-container">
+            <div *ngFor="let list of watchlist; let idx = index"
+                 class="watchlist-tab cursor-pointer px-3 py-1.5 rounded-md transition text-center"
+                 [matTooltip]="list.name"
+                 (click)="switchList(idx)"
+                 [ngClass]="{
+                'bg-blue-100 text-blue-700 font-medium': idx === currentListIndex,
+                'text-gray-600 hover:bg-gray-100': idx !== currentListIndex
+              }">
+              {{ idx + 1 }}
+            </div>
+          </div>
+
+          <!-- Search Box -->
+          <div class="relative mt-2">
+            <fa-icon [icon]="faSearch" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></fa-icon>
+            <input
+              type="text"
+              [(ngModel)]="searchTerm"
+              (input)="onSearchTermChange($event)"
+              class="pl-10 pr-3 py-2 w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-100 focus:outline-none"
+              placeholder="Search and add eg: infy, nifty fut, etc"
+            />
+          </div>
+
+          <!-- Search Dropdown -->
+          <div *ngIf="fetchedInstruments.length > 0 && searchTerm.length > 0"
+               class="mt-2 bg-white border border-gray-300 rounded-md shadow-sm max-h-60 overflow-auto">
+            <div *ngFor="let instrument of fetchedInstruments"
+                 class="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                 (click)="addToWatchlist(instrument)">
+              <div class="flex justify-between items-center">
+                <div class="text-gray-700">{{ instrument.displayName }}</div>
+                <div class="text-xs text-gray-400">{{ instrument.segment }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Watchlist Items -->
+        <div class="page-content flex-1  divide-y divide-gray-100">
+          <div *ngFor="let item of currentList; trackBy: trackById; let i = index"
+               class="flex justify-between items-center px-4 py-2 hover:bg-gray-50 relative cursor-pointer"
+               (mouseenter)="hoveredIndex = i"
+               (mouseleave)="hoveredIndex = null"
+               draggable="true"
+               (dragstart)="onDragStart($event, i)"
+               (dragover)="onDragOver($event, i)"
+               (drop)="onDrop($event, i)"
+               (dragend)="onDragEnd()"
+          >
+            <div>
+              <div class="text-gray-700">{{ item.displayName }}</div>
+              <div class="text-sm text-gray-400 uppercase">{{ item.segment }}</div>
+            </div>
+
+            <div class="text-right">
+              <div [ngClass]="color(item.change)" class="text-gray-700">{{ item.lastPrice | number: '1.2-2' }}</div>
+              <span class="ml-1 text-sm text-gray-700" [ngClass]="color(item.change)">
+                {{ item.changeAbs | number:'1.2-2' }}
+                <span
+                  class="text-sm rounded-md px-1 py-[1px]"
+                  [class.bg-green-50]="item.change > 0"
+                  [class.bg-red-50]="item.change < 0">
+                  {{ item.change / 100 | percent:'1.2-2' }}
+                </span>
+              </span>
+            </div>
+
+            <!-- Hover Actions -->
+            @if (hoveredIndex === i) {
+              <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex gap-1 z-10">
+                @if (item.tradable) {
+                  <button (click)="handleAction({action: 'buy', row: item})"
+                          class="mr-2 w-8 h-8 bg-blue-500 text-white rounded-md flex items-center justify-center hover:bg-blue-600 transition"
+                          [matTooltip]="'Buy'">B</button>
+                  <button (click)="handleAction({action: 'sell', row: item})"
+                          class="w-8 h-8 bg-orange-500 text-white rounded-md flex items-center justify-center hover:bg-orange-600 transition"
+                          [matTooltip]="'Sell'">S</button>
+                  <app-action-button class="text-base" [title]="'Add to Basket'" [action]="'basket'" [color]="'gray'" [row]="item" (handleAction)="addToBasketOrder(item)"></app-action-button>
+
+                }
+                <app-market-depth-invoker class="text-base" [title]="item.displayName" [instrumentToken]="item.instrumentToken" [iconBackground]="true"></app-market-depth-invoker>
+                <app-action-button class="text-base" [title]="'Chart'" [action]="'chart'" [color]="'gray'" [row]="item" (handleAction)="handleAction($event)"></app-action-button>
+                <app-action-button class="text-base" [title]="'Delete'" [action]="'delete'" [color]="'red'" [row]="item" (handleAction)="handleAction($event)"></app-action-button>
+              </div>
+            }
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+</div>

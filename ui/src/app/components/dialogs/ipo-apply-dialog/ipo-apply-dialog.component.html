@@ -1,0 +1,264 @@
+<div
+  cdkDrag
+  cdkDragRootElement=".cdk-overlay-pane"
+  class="min-w-[300px] sm:min-w-[500px] w-full max-w-3xl mx-auto rounded-md shadow-sm overflow-hidden text-gray-700 bg-white"
+>
+  <!-- Header -->
+  <div cdkDragHandle class="flex items-center justify-between p-4 border-b cursor-move">
+    <span class="text-lg font-medium text-gray-600">Apply for IPO</span>
+    <span class="text-sm text-blue-500">{{ ipo.symbol }} - {{ ipo.name }}</span>
+  </div>
+
+  <!-- Body -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 max-h-[70vh] overflow-y-auto">
+
+    <!-- Left Side: IPO Information (Read-only) -->
+    <div class="space-y-4">
+      <h3 class="font-semibold text-gray-700 border-b pb-2">IPO Details</h3>
+
+      <div class="space-y-3 text-sm">
+        <!-- Symbol -->
+        <div class="flex justify-between items-center">
+          <span class="text-gray-400 ">Symbol:</span>
+          <span class="text-gray-700">{{ ipo.symbol }}</span>
+        </div>
+
+        <!-- Company Name -->
+        <div class="flex justify-between items-center">
+          <span class="text-gray-400 ">Company Name:</span>
+          <span class="text-gray-700">{{ ipo.name }}</span>
+        </div>
+
+        <!-- IPO Type -->
+        <div class="flex justify-between items-center">
+          <span class="text-gray-400 ">IPO Type:</span>
+          <app-small-chip
+            [text]="getIpoType(ipo.sub_type)"
+            [color]="'purple'">
+          </app-small-chip>
+        </div>
+
+        <!-- Price Range -->
+        <div class="flex justify-between items-center">
+          <span class="text-gray-400 ">Price Range:</span>
+          <span class="text-gray-700">₹{{ getMinPrice() | number:'1.0-2' }} - ₹{{ getMaxPrice() | number:'1.0-2' }}</span>
+        </div>
+
+        <!-- Lot Size -->
+        <div class="flex justify-between items-center">
+          <span class="text-gray-400 ">Minimum Lot Qty:</span>
+          <span class="text-gray-700">{{ getLotsMinQty() }}</span>
+        </div>
+
+        <!-- Subscription Start -->
+        <div class="flex justify-between items-center">
+          <span class="text-gray-400 ">Subscription Start:</span>
+          <span class="text-gray-700">
+            <span *ngIf="ipo.start_at">{{ ipo.start_at | istDate:'date-ordinal' }}</span>
+            <span *ngIf="!ipo.start_at">TBA</span>
+          </span>
+        </div>
+
+        <!-- Subscription End -->
+        <div class="flex justify-between items-center">
+          <span class="text-gray-400 ">Subscription End:</span>
+          <span class="text-gray-700">
+            <span *ngIf="ipo.end_at">{{ ipo.end_at | istDate:'date-ordinal' }}</span>
+            <span *ngIf="!ipo.end_at">TBA</span>
+          </span>
+        </div>
+        <!-- allotment Date -->
+        <div class="flex justify-between items-center">
+          <span class="text-gray-400 ">Allotment Date:</span>
+          <span class="text-gray-700">
+            <span *ngIf="ipo.allotment_finalisation_date">{{ ipo.allotment_finalisation_date | istDate:'date-ordinal' }}</span>
+            <span *ngIf="!ipo.allotment_finalisation_date">TBA</span>
+          </span>
+        </div>
+        <!-- Listing Date -->
+        <div class="flex justify-between items-center">
+          <span class="text-gray-400 ">Listing Date:</span>
+          <span class="text-gray-700">
+            <span *ngIf="ipo.listing_date">{{ ipo.listing_date | istDate:'date-ordinal' }}</span>
+            <span *ngIf="!ipo.listing_date">TBA</span>
+          </span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-gray-400 ">Status:</span>
+          <span class="text-gray-700">
+           <app-small-chip
+             [text]="ipo.status"
+             [color]="getIpoStatusChipColor(ipo.status)">
+          </app-small-chip>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Side: Application Form -->
+    <div class="space-y-4">
+      <h3 class="font-semibold text-gray-700 border-b pb-2">Your Application</h3>
+
+      <form [formGroup]="applyForm" class="space-y-4">
+        <!-- Trading Account Selection -->
+        <div>
+          <label for="trading-account-dropdown" class="text-gray-600 text-sm block mb-1">
+            Trading Account
+            <span class="text-red-500">*</span>
+          </label>
+          <app-user-dropdown
+            id="trading-account-dropdown"
+            [(selectedUserId)]="selectedTradingAccountId"
+            (selectUser)="fetchVPAId($event)"
+            [placeholder]="'Select Trading Account'">
+          </app-user-dropdown>
+        </div>
+
+        <!-- UPI ID -->
+        <div>
+          <label for="upi-id" class="text-gray-600 text-sm block mb-1">
+            UPI ID
+            <span class="text-red-500">*</span>
+          </label>
+          <input [disabled]="isLoadingVPA"
+            id="upi-id"
+            type="text"
+            formControlName="upiId"
+            placeholder="e.g., yourname@upi"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            [ngClass]="{'border-red-500': applyForm.get('upiId')?.invalid && applyForm.get('upiId')?.touched}"
+          />
+          <span *ngIf="applyForm.get('upiId')?.invalid && applyForm.get('upiId')?.touched" class="text-red-500 text-sm">
+            Please enter a valid UPI ID
+          </span>
+          <span *ngIf="vpaName.length>0" class="text-green-600 text-sm">
+            {{vpaName}}
+          </span>
+        </div>
+
+        <!-- Bids Section -->
+        <div class="space-y-3">
+          <div class="text-gray-600 text-sm block">
+            Bids
+            <span class="text-red-500">*</span>
+          </div>
+
+          <!-- Bid Items -->
+          <div *ngFor="let bid of bids; let i = index" class="border border-gray-200 rounded-md p-3 bg-gray-50 space-y-2">
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-sm font-medium text-gray-700">Bid {{ i + 1 }}</span>
+              <button *ngIf="bids.length > 1"
+                type="button"
+                (click)="removeBid(i)"
+                class="text-red-500 hover:text-red-600 text-sm"
+                [disabled]="bids.length <= 1"
+                [matTooltip]="bids.length <= 1 ? 'At least one bid is required' : 'Remove bid'"
+              >
+                <fa-icon [icon]="faTrash" class="text-sm"></fa-icon>
+              </button>
+            </div>
+
+            <!-- Quantity and Price on same row -->
+            <div class="grid grid-cols-2 gap-2">
+              <!-- Quantity -->
+              <div>
+                <label for="quantity-{{ i }}" class="text-gray-600 text-sm">Quantity (Min: {{ getLotsMinQty() }})</label>
+                <input
+                  id="quantity-{{ i }}"
+                  type="number"
+                  [(ngModel)]="bid.quantity"
+                  (ngModelChange)="calculateAmountPayable()"
+                  [ngModelOptions]="{standalone: true}"
+                  placeholder="Qty"
+                  class="w-full px-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
+                  [ngClass]="{'border-red-500': bid.quantity > 0 && bid.quantity < getLotsMinQty()}"
+                  min="0"
+                />
+                <span *ngIf="bid.quantity > 0 && bid.quantity < getLotsMinQty()" class="text-red-500 text-sm">
+                  Min: {{ getLotsMinQty() }}
+                </span>
+              </div>
+
+              <!-- Price -->
+              <div>
+                <label for="price-{{ i }}" class="text-gray-600 text-sm">Price (₹{{ getMinPrice() | number:'1.0-2' }} - ₹{{ getMaxPrice() | number:'1.0-2' }})</label>
+                <input
+                  id="price-{{ i }}"
+                  type="number"
+                  [(ngModel)]="bid.price"
+                  [ngModelOptions]="{standalone: true}"
+                  (ngModelChange)="calculateAmountPayable()"
+                  placeholder="Price"
+                  class="w-full px-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
+                  [ngClass]="{'border-red-500': bid.quantity > 0 && bid.price > 0 && (bid.price < getMinPrice() || bid.price > getMaxPrice())}"
+                  [min]="getMinPrice()"
+                  [max]="getMaxPrice()"
+                  [disabled]="bid.auto_cutoff"
+                  step="0.01"
+                />
+                <span *ngIf="bid.quantity > 0 && bid.price > 0 && (bid.price < getMinPrice() || bid.price > getMaxPrice())" class="text-red-500 text-sm">
+                  Invalid price
+                </span>
+              </div>
+            </div>
+
+            <!-- Cutoff Price Checkbox -->
+            <div class="flex items-center">
+              <input
+                type="checkbox"
+                [(ngModel)]="bid.auto_cutoff"
+                [ngModelOptions]="{standalone: true}"
+                (change)="onCutoffPriceToggle(i)"
+                id="cutoff-{{ i }}"
+                class="rounded border-gray-300"
+              />
+              <label for="cutoff-{{ i }}" class="text-gray-600 text-sm ml-2 cursor-pointer">
+                Apply Cutoff Price (₹{{ getMaxPrice() | number:'1.0-2' }})
+              </label>
+            </div>
+          </div>
+
+          <!-- Add Bid Button -->
+          <button
+            *ngIf="canAddBid()"
+            type="button"
+            (click)="addBid()"
+            class="w-full py-2 border-2 border-dashed border-blue-300 text-blue-600 rounded-md hover:bg-blue-50 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
+          >
+            <fa-icon [icon]="faPlus" class="text-sm"></fa-icon>
+            Add Bid ({{ bids.length }}/{{ maxBids }})
+          </button>
+        </div>
+
+        <!-- Amount Payable -->
+        <div class="bg-blue-50 p-3 rounded-md border border-blue-200">
+          <div class="flex justify-between items-center">
+            <span class="text-gray-700 font-medium">Total Amount Payable:</span>
+            <span class="text-lg font-bold text-blue-600">₹{{ totalAmountPayable | number:'1.0-2' }}</span>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <!-- Action Buttons -->
+  <div cdkDragHandle class="w-full flex flex-col sm:flex-row gap-3 pt-2 cdk-drag-handle items-stretch justify-between p-4 border-b cursor-move">
+    <button
+      type="button"
+      (click)="submit()"
+      [disabled]="isSubmitting || isLoadingVPA"
+      class="flex-1 py-2 rounded-md text-white bg-blue-600 hover:bg-blue-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed">
+      {{ isSubmitting ? 'Submitting...' : 'Submit' }}
+    </button>
+    <button
+      type="button"
+      (click)="onClose()"
+      [disabled]="isSubmitting || isLoadingVPA"
+      class="flex-1 py-2 border rounded-md hover:bg-gray-100 disabled:bg-gray-100 disabled:cursor-not-allowed">
+      Cancel
+    </button>
+  </div>
+
+</div>
+

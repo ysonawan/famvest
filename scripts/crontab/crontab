@@ -1,0 +1,5 @@
+##Daily db and application backup at 00:30AM UTC (06:00AM IST)##
+30 0 * * * /opt/app/scripts/daily_backup.sh >> /var/log/daily_backup.log 2>&1
+
+##Weekly server restart at 00:15AM UTC (05:45AM IST) on every sunday##
+15 0 * * 0 /sbin/shutdown -r now

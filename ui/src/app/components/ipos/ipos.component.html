@@ -1,0 +1,125 @@
+<div class="page-container">
+
+  <div *ngIf="!errorMessage" >
+    <div class="flex items-center justify-between border-b border-gray-200 mb-4">
+      <!-- Left: Tab buttons -->
+      <div class="flex gap-1">
+        <div *ngFor="let tab of subTabs"
+             (click)="setActiveSubTab(tab)"
+             [class.active-tab]="tab === activeSubTab"
+             [class.text-gray-700]="tab !== activeSubTab"
+             class="tab-category cursor-pointer pb-2 px-4 py-2 rounded-md transition hover:bg-gray-100 hover:text-blue-500 relative"
+        >
+          {{ tab }}
+          <!-- Count Badge -->
+          <span
+            class="text-sm gap-1.5 font-semibold pb-0.5 px-2 py-1 rounded-md"
+            [ngClass]="{
+              'bg-blue-100 text-blue-600': tab === activeSubTab,
+              'bg-blue-50 text-blue-500': tab !== activeSubTab
+            }"
+          >
+            {{ tabCounts[tab] }}
+          </span>
+          <span
+            *ngIf="tab === activeSubTab" class="absolute left-0 bottom-1 h-0.5 w-0 bg-blue-500 transition-all"
+          ></span>
+        </div>
+      </div>
+    </div>
+    <div *ngIf="activeSubTab === subTabs[0]" >
+      <div class="flex items-center justify-between gap-4 w-full mb-2">
+        <!-- Filter/Sort Component -->
+        <div class="flex-shrink-0">
+          <app-tool-bar [filterOptions]="filterOptions" [filterSelection]="filterSelection"
+             [isLoadingData]="isLoadingData"
+             (filtersChanged)="applyFilters($event)"
+             (handleRefresh)="handleRefresh($event)">
+          </app-tool-bar>
+        </div>
+
+        <!-- Empty div to push search input to the right -->
+        <div class="flex-1"></div>
+
+        <!-- Search Input - positioned on the right -->
+        <div class="flex-shrink-0">
+          <app-search-input
+            [placeholder]="'Search IPOs by name or type'"
+            (inputChange)="onSearch($event)"
+            [searchTerm]="searchQuery" >
+          </app-search-input>
+        </div>
+      </div>
+      <div *ngIf="filteredIpos.length > 0; else noData" class="page-content">
+        <app-ipo-table
+          [rows]="filteredIpos"
+          (applicationSubmitted)="fetchIPOApplications()">
+        </app-ipo-table>
+      </div>
+      <ng-template #noData>
+        <div class="page-content">
+          <app-note
+            [type]="'warning'"
+            [dismissible]="false"
+            [atCenter]="true"
+          >
+            There are no IPOs display here. Check your filters or search criteria.
+          </app-note>
+        </div>
+      </ng-template>
+    </div>
+    <div *ngIf="activeSubTab === subTabs[1]" >
+      <div class="flex items-center justify-between gap-4 w-full mb-2">
+        <!-- Filter/Sort Component -->
+        <div class="flex-shrink-0">
+          <app-tool-bar [filterOptions]="applicationsFilterOptions" [filterSelection]="applicationsFilterSelection"
+             [isLoadingData]="isLoadingData"
+             (filtersChanged)="applyApplicationsFilters($event)"
+             (handleRefresh)="handleApplicationsRefresh($event)">
+          </app-tool-bar>
+        </div>
+
+        <!-- Empty div to push user filter and search input to the right -->
+        <div class="flex-1"></div>
+
+        <!-- User Filter - positioned before search input -->
+        <div class="flex-shrink-0">
+          <app-user-filter
+            (selectAllUsers)="onAllUserSelection()"
+            (selectUsers)="onUserSelection($event)"
+            (totalUsers)="captureUsers($event)"
+            [selectedUserIds]="selectedUserIds"
+          ></app-user-filter>
+        </div>
+
+        <!-- Search Input - positioned on the right -->
+        <div class="flex-shrink-0">
+          <app-search-input
+            [placeholder]="'Search IPO applications by User ID or Symbol'"
+            (inputChange)="onIpoApplicationSearch($event)"
+            [searchTerm]="searchIpoApplicationsQuery">
+          </app-search-input>
+        </div>
+      </div>
+      <div *ngIf="groupedApplications.length > 0; else noData" class="page-content">
+        <!-- Applications Table with Groups -->
+        <app-ipo-applications-table
+          [groupedApplications]="groupedApplications"
+          [fallbackAvatarUrl]="fallbackAvatarUrl"
+          (applicationCancelled)="onApplicationCancelled()">
+        </app-ipo-applications-table>
+      </div>
+      <ng-template #noData>
+        <div class="page-content">
+          <app-note
+            [type]="'warning'"
+            [dismissible]="false"
+            [atCenter]="true"
+          >
+            You don't have any IPO applications. Check your filters or search criteria.
+          </app-note>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>

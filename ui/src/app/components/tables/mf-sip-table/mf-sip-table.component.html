@@ -1,0 +1,172 @@
+<!-- MF SIPs Table with Sticky Header -->
+<div class="w-full bg-white border border-gray-200 rounded-md shadow-sm">
+
+  @if (!groupedSips || groupedSips.length === 0) {
+    <div class="flex items-center justify-center py-12 px-4">
+      <p class="text-gray-500 text-center">No SIPs to display</p>
+    </div>
+  } @else {
+    <!-- Table View -->
+    <div>
+      <table class="w-full border-collapse">
+        <thead class="sticky top-0 z-20 bg-gray-100 shadow-sm">
+          <tr class="text-left text-sm font-semibold text-gray-700 uppercase tracking-wider bg-gray-100 border-b border-gray-300">
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left whitespace-nowrap">
+              <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setSort('fund')">
+                FUND
+                <span class="text-[10px]" *ngIf="getSortIndicator('fund')">{{ getSortIndicator('fund') }}</span>
+              </button>
+            </th>
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+              <button type="button" class="flex items-center gap-1 w-full justify-end" (click)="setSort('instalmentAmount')">
+                AMOUNT
+                <span class="text-[10px]" *ngIf="getSortIndicator('instalmentAmount')">{{ getSortIndicator('instalmentAmount') }}</span>
+              </button>
+            </th>
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+              <button type="button" class="flex items-center gap-1 w-full justify-end" (click)="setSort('dayChangePercentage')">
+                NAV
+                <span class="text-[10px]" *ngIf="getSortIndicator('dayChangePercentage')">{{ getSortIndicator('dayChangePercentage') }}</span>
+              </button>
+            </th>
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+              <button type="button" class="flex items-center gap-1 w-full justify-end" (click)="setSort('lastInstalment')">
+                LAST INSTALMENT
+                <span class="text-[10px]" *ngIf="getSortIndicator('lastInstalment')">{{ getSortIndicator('lastInstalment') }}</span>
+              </button>
+            </th>
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+              <button type="button" class="flex items-center gap-1 w-full justify-end" (click)="setSort('nextInstalment')">
+                NEXT INSTALMENT
+                <span class="text-[10px]" *ngIf="getSortIndicator('nextInstalment')">{{ getSortIndicator('nextInstalment') }}</span>
+              </button>
+            </th>
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+              <button type="button" class="flex items-center gap-1 w-full justify-end" (click)="setSort('status')">
+                STATUS
+                <span class="text-[10px]" *ngIf="getSortIndicator('status')">{{ getSortIndicator('status') }}</span>
+              </button>
+            </th>
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+              <button type="button" class="flex items-center gap-1 w-full justify-end" (click)="setSort('created')">
+                CREATED
+                <span class="text-[10px]" *ngIf="getSortIndicator('created')">{{ getSortIndicator('created') }}</span>
+              </button>
+            </th>
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-center">ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white">
+          <ng-container *ngFor="let group of sortedGroupedSips; let isLast = last;  trackBy: trackByUser">
+            <!-- User Header Row -->
+            <tr class="border-b border-gray-200 text-gray-700 text-sm">
+              <td colspan="1" class="px-2 md:px-4 whitespace-nowrap">
+                <app-user-info-header
+                  [userId]="group.userId"
+                  [userName]="group.userName || group.userId"
+                  [fullName]="group.fullName || group.userName"
+                  [avatarUrl]="group.avatarUrl"
+                  [fallbackAvatarUrl]="fallbackAvatarUrl">
+                </app-user-info-header>
+              </td>
+              <!-- Total Amount Column -->
+              <td class="px-2 md:px-4 py-2 text-right font-medium whitespace-nowrap">
+                <span class="">{{ group.totalSipAmount | currency:'INR':'symbol':'1.0-0' }}</span>
+              </td>
+              <td colspan="6" class="px-2 md:px-4 whitespace-nowrap"></td>
+            </tr>
+            <!-- Order Rows -->
+            <ng-container *ngFor="let mfSipDetails of group.sips; trackBy: trackBySequenceNumber">
+              <tr class="border-b border-gray-200 text-sm text-gray-700 hover:bg-blue-50 transition-colors duration-150">
+                <!-- Fund -->
+                <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">
+                  <div class="flex items-center gap-2">
+                      <span class="hover:text-blue-600 truncate max-w-xs bg-none border-none p-0 m-0 text-left uppercase"
+                        [matTooltip]="mfSipDetails.mfSip.fund">
+                        {{ mfSipDetails.mfSip.fund }}
+                      </span>
+                    <app-small-chip [text]="mfSipDetails.mfSip.frequency" [color]="'gray'"></app-small-chip>
+                  </div>
+                </td>
+                <!-- Amount -->
+                <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+                  <span class="">{{ mfSipDetails.mfSip.instalmentAmount | currency:'INR':'symbol':'1.0-0' }}</span>
+                </td>
+
+                <!-- NAV -->
+                <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+                  <span [ngClass]="color(mfSipDetails.dayChangePercentage)">
+                    {{ mfSipDetails.lastPrice | number:'1.2-2' }}
+                    <span
+                      [class.bg-green-50]="mfSipDetails.dayChangePercentage > 0"
+                      [class.bg-red-50]="mfSipDetails.dayChangePercentage < 0"
+                      class="text-sm rounded-md px-1 py-[1px]">
+                      {{ mfSipDetails.dayChangePercentage / 100 | percent:'1.2-2' }}
+                    </span>
+                  </span>
+                </td>
+
+                <!-- Instalment Info -->
+                <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+                  <div class="flex flex-col gap-1">
+                    <ng-container *ngIf="isSipCompletedInThisMonth(mfSipDetails.mfSip.lastInstalment)">
+                      <span class=""><fa-icon [icon]="faCheckCircle" class="text-green-500" matTooltip="Completed for this month"></fa-icon> {{ mfSipDetails.mfSip.lastInstalment | istDate:'date-ordinal' }}</span>
+                    </ng-container>
+                    <ng-container *ngIf="!isSipCompletedInThisMonth(mfSipDetails.mfSip.lastInstalment)">
+                      <span class="">{{ mfSipDetails.mfSip.lastInstalment | istDate:'date-ordinal' }}</span>
+                    </ng-container>
+                  </div>
+                </td>
+
+                <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+                  <div class="flex flex-col gap-1">
+                    <ng-container *ngIf="isUpcomingSipInThisMonth(mfSipDetails.mfSip.nextInstalment)">
+                      <span class=""> <fa-icon [icon]="faClock" class="text-orange-500" matTooltip="Pending for this month"></fa-icon> {{ mfSipDetails.mfSip.nextInstalment | istDate:'date-ordinal' }}</span>
+                    </ng-container>
+                    <ng-container *ngIf="!isUpcomingSipInThisMonth(mfSipDetails.mfSip.nextInstalment) && !isSipCompletedInThisMonth(mfSipDetails.mfSip.lastInstalment)">
+                      <span class=" ">{{ mfSipDetails.mfSip.nextInstalment | istDate:'date-ordinal' }}</span>
+                    </ng-container>
+                  </div>
+                </td>
+
+                <!-- Status -->
+                <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+                  <app-small-chip
+                    [text]="mfSipDetails.mfSip.status"
+                    [color]="getStatusChipColor(mfSipDetails.mfSip.status)">
+                  </app-small-chip>
+                </td>
+
+                <!-- Created -->
+                <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+                  <div class="flex flex-col items-end gap-1">
+                    <span class="text-sm">
+                      {{ getOrderTimeStamp(mfSipDetails.mfSip.created) | istDate:'date' }}
+                      <app-small-chip [text]="getSipCreatedSince(mfSipDetails.mfSip.created)" [color]="'purple'"> </app-small-chip>
+                    </span>
+
+                  </div>
+                </td>
+
+                <!-- Actions -->
+                <td class="px-2 md:px-4 py-2 md:py-3 text-center whitespace-nowrap">
+                  <app-action-menu
+                    [row]="mfSipDetails"
+                    [actions]="getActionButtons(mfSipDetails)"
+                    (handleAction)="handleAction($event)">
+                  </app-action-menu>
+                </td>
+              </tr>
+            </ng-container>
+            <!-- User Separator -->
+            <tr *ngIf="!isLast">
+              <td colspan="8" class="py-1">
+                <div class="border-b border-dashed border-gray-100"></div>
+              </td>
+            </tr>
+          </ng-container>
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

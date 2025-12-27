@@ -1,0 +1,11 @@
+/* Responsive tweaks for bar chart */
+:host {
+  display: block;
+  width: 100%;
+}
+
+.echarts {
+  width: 100%;
+  height: 100%;
+}
+

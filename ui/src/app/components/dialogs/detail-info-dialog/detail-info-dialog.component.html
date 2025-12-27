@@ -1,0 +1,41 @@
+<div
+  cdkDrag
+  cdkDragRootElement=".cdk-overlay-pane"
+  class="w-full max-w-xl rounded-md shadow-sm overflow-hidden text-gray-700 bg-white"
+>
+  <!-- Header -->
+  <div cdkDragHandle class="flex items-center justify-between px-4 py-3 border-b cursor-move">
+    <span class="text-lg font-medium text-gray-600">{{ title }}</span>
+  </div>
+
+  <!-- Body -->
+  <div class="p-2 space-y-4">
+    <div class="overflow-auto max-h-[60vh]">
+      <table class="table-fixed w-full rounded-md divide-y divide-gray-200">
+        <tbody class="divide-y divide-gray-100 text-sm text-gray-700">
+        <tr *ngFor="let key of getKeys(flattenedData)" class="hover:bg-gray-50">
+      <th
+        scope="row"
+            class="px-4 py-2 text-left font-medium text-gray-600 align-top break-words w-1/3"
+      >
+        {{ toLabel(key) }}
+      </th>
+      <td class="px-4 py-2 text-left break-words w-2/3">
+            {{ formatValue(key, flattenedData[key]) }}
+          </td>
+        </tr>
+            </tbody>
+          </table>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div cdkDragHandle class="flex justify-end px-4 py-3 border-t cursor-move">
+    <button
+      (click)="onClose()"
+      class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100 text-sm"
+    >
+      Close
+    </button>
+  </div>
+</div>

@@ -1,0 +1,163 @@
+<!-- MF Orders Table with Sticky Header -->
+<div class="w-full bg-white border border-gray-200 rounded-md shadow-sm">
+
+  @if (!groupedRows || groupedRows.length === 0) {
+    <div class="flex items-center justify-center py-12 px-4">
+      <p class="text-gray-500 text-center">No orders to display</p>
+    </div>
+  } @else {
+    <!-- Table View -->
+    <div>
+      <table class="w-full border-collapse">
+        <thead class="sticky top-0 z-20 bg-gray-100 shadow-sm">
+          <tr class="text-left text-sm font-semibold text-gray-700 uppercase tracking-wider bg-gray-100 border-b border-gray-300">
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-left whitespace-nowrap">
+              <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setSort('fund')">
+                FUND
+                <span class="text-[10px]" *ngIf="getSortIndicator('fund')">{{ getSortIndicator('fund') }}</span>
+              </button>
+            </th>
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+              <button type="button" class="flex items-center gap-1 w-full justify-end" (click)="setSort('amount')">
+                AMOUNT
+                <span class="text-[10px]" *ngIf="getSortIndicator('amount')">{{ getSortIndicator('amount') }}</span>
+              </button>
+            </th>
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+              <button type="button" class="flex items-center gap-1 w-full justify-end" (click)="setSort('quantity')">
+                QTY
+                <span class="text-[10px]" *ngIf="getSortIndicator('quantity')">{{ getSortIndicator('quantity') }}</span>
+              </button>
+            </th>
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+              <button type="button" class="flex items-center gap-1 w-full justify-end" (click)="setSort('price')">
+                AVG PRICE
+                <span class="text-[10px]" *ngIf="getSortIndicator('price')">{{ getSortIndicator('price') }}</span>
+              </button>
+            </th>
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+              <button type="button" class="flex items-center gap-1 w-full justify-end" (click)="setSort('nav')">
+                NAV
+                <span class="text-[10px]" *ngIf="getSortIndicator('nav')">{{ getSortIndicator('nav') }}</span>
+              </button>
+            </th>
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+              <button type="button" class="flex items-center gap-1 w-full text-left" (click)="setSort('status')">
+                STATUS
+                <span class="text-[10px]" *ngIf="getSortIndicator('status')">{{ getSortIndicator('status') }}</span>
+              </button>
+            </th>
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+              <button type="button" class="flex items-center gap-1 w-full justify-end" (click)="setSort('timestamp')">
+                TIME
+                <span class="text-[10px]" *ngIf="getSortIndicator('timestamp')">{{ getSortIndicator('timestamp') }}</span>
+              </button>
+            </th>
+            <th scope="col" class="px-2 md:px-4 py-2 md:py-3 text-center">ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white">
+          <!-- Handle grouped rows (with user headers) -->
+          <ng-container *ngIf="groupedRows && groupedRows.length > 0">
+            <ng-container *ngFor="let group of sortedGroupedRows; let isLast = last; trackBy: trackByUser">
+              <!-- User Header Row -->
+              <tr class="border-b border-gray-200 text-gray-700 text-sm">
+                <td colspan="1" class="px-2 md:px-4 whitespace-nowrap">
+                  <app-user-info-header
+                    [userId]="group.userId"
+                    [userName]="group.userName || group.userId"
+                    [fullName]="group.fullName || group.userName"
+                    [avatarUrl]="group.avatarUrl"
+                    [fallbackAvatarUrl]="fallbackAvatarUrl">
+                  </app-user-info-header>
+                </td>
+                <!-- Total Amount Column -->
+                <td class="px-2 md:px-4 py-2 text-right font-medium whitespace-nowrap">
+                  <span class="">{{ group.totalBuyAmount - group.totalSellAmount | currency:'INR':'symbol':'1.0-0' }}</span>
+                </td>
+                <td colspan="6" class="px-2 md:px-4 whitespace-nowrap"></td>
+              </tr>
+
+              <!-- Order Rows -->
+              <ng-container *ngFor="let orderDetails of group.orders; trackBy: trackBySequenceNumber">
+                <tr class="border-b border-gray-200 text-sm text-gray-700 hover:bg-blue-50 transition-colors duration-150">
+                  <!-- Fund -->
+                  <td class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">
+                    <div class="flex items-center gap-2">
+                      <app-small-chip
+                        [text]="orderDetails.mfOrder.transactionType"
+                        [color]="getTransactionTypeChipColor(orderDetails.mfOrder.transactionType)">
+                      </app-small-chip>
+                      <span class="hover:text-blue-600 truncate max-w-xs bg-none border-none p-0 m-0 text-left uppercase"
+                            [matTooltip]="orderDetails.mfOrder.fund">
+                        {{ orderDetails.mfOrder.fund }}
+                      </span>
+                      <app-small-chip [text]="getVariety(orderDetails.mfOrder.variety)" [color]="'purple'"></app-small-chip>
+                    </div>
+                  </td>
+
+              <!-- Amount -->
+              <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+                <span>{{ orderDetails.mfOrder.amount | currency:'INR':'symbol':'1.0-0' }}</span>
+              </td>
+              <!-- Qty -->
+              <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+                <span>{{ orderDetails.mfOrder.quantity | number:'1.2-2' }}</span>
+              </td>
+              <!-- Avg Price -->
+              <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+                <span>{{ orderDetails.mfOrder.averagePrice | number:'1.2-2' }}</span>
+              </td>
+
+              <!-- NAV -->
+              <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+                <span [ngClass]="color(orderDetails.dayChangePercentage)">
+                  {{ orderDetails.lastPrice | number:'1.2-2' }}
+                  <span
+                    [class.bg-green-50]="orderDetails.dayChangePercentage > 0"
+                    [class.bg-red-50]="orderDetails.dayChangePercentage < 0"
+                    class="text-sm rounded-md px-1 py-[1px]">
+                    {{ orderDetails.dayChangePercentage / 100 | percent:'1.2-2' }}
+                  </span>
+                </span>
+              </td>
+
+              <!-- Status -->
+              <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+                <div class="flex items-center gap-2">
+                  <app-small-chip class="cursor-pointer" [matTooltip]="orderDetails.mfOrder.statusMessage"
+                    [text]="orderDetails.mfOrder.status"
+                    [color]="getStatusChipColor(orderDetails.mfOrder.status)">
+                  </app-small-chip>
+                </div>
+              </td>
+
+              <!-- Timestamp -->
+              <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+                {{ getOrderTimeStamp(orderDetails.mfOrder.orderTimestamp) | istDate:'datetime-ordinal' }}
+              </td>
+
+              <!-- Actions -->
+              <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
+                <app-action-menu
+                  [row]="orderDetails"
+                  [actions]="getActionButtons(orderDetails)"
+                  (handleAction)="handleAction($event)">
+                </app-action-menu>
+              </td>
+            </tr>
+          </ng-container>
+
+          <!-- User Separator -->
+          <tr *ngIf="!isLast">
+            <td colspan="8" class="py-1">
+              <div class="border-b border-dashed border-gray-300"></div>
+            </td>
+          </tr>
+        </ng-container>
+      </ng-container>
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

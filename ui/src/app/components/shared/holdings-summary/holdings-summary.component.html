@@ -1,0 +1,117 @@
+<div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-4 mb-2 w-full">
+  <!-- Total Investment -->
+  <div
+    class="bg-white p-2 border rounded-md shadow-sm flex flex-col items-center justify-center text-center min-h-16"
+    *ngIf="totalInvestment !== undefined"
+  >
+    <span class="text-xs text-gray-500 uppercase tracking-wide">Total Investment</span>
+    <span class="text-base font-medium text-gray-700 mt-1">
+      {{ totalInvestment | currency:'INR':'symbol':'1.2-2' }}
+    </span>
+  </div>
+
+  <!-- Current Value -->
+  <div
+    class="bg-white p-2 border rounded-md shadow-sm flex flex-col items-center justify-center text-center min-h-16"
+    *ngIf="currentValue !== undefined"
+  >
+    <span class="text-xs text-gray-500 uppercase tracking-wide">Current Value</span>
+    <span class="text-base font-medium text-gray-700 mt-1">
+      {{ currentValue | currency:'INR':'symbol':'1.2-2' }}
+    </span>
+  </div>
+
+  <!-- Day's P&L without percentage -->
+  <div
+    class="bg-white p-2 border rounded-md shadow-sm flex flex-col items-center justify-center text-center min-h-16"
+    *ngIf="daysPnL !== undefined && daysPnLPercentage === undefined"
+  >
+    <span class="text-xs text-gray-500 uppercase tracking-wide">Day's P&amp;L</span>
+    <span
+      class="text-base font-medium mt-1"
+      [ngClass]="{
+        'text-green-600': daysPnL > 0,
+        'text-red-600': daysPnL < 0,
+        'text-gray-700': daysPnL === 0
+      }"
+    >
+      {{ daysPnL | currency:'INR':'symbol':'1.2-2' }}
+    </span>
+  </div>
+
+  <!-- Day's P&L with percentage -->
+  <div
+    class="bg-white p-2 border rounded-md shadow-sm flex flex-col items-center justify-center text-center min-h-16"
+    *ngIf="daysPnL !== undefined && daysPnLPercentage !== undefined"
+  >
+    <span class="text-xs text-gray-500 uppercase tracking-wide">Day's P&amp;L</span>
+    <div class="flex items-center justify-center gap-1 mt-1">
+      <span
+        class="text-base font-medium"
+        [ngClass]="{
+          'text-green-600': daysPnL > 0,
+          'text-red-600': daysPnL < 0,
+          'text-gray-700': daysPnL === 0
+        }"
+      >
+        {{ daysPnL | currency:'INR':'symbol':'1.2-2' }}
+      </span>
+      <span
+        class="text-sm rounded-md px-1 py-[1px]"
+        [ngClass]="{
+          'bg-green-50 text-green-600': daysPnLPercentage > 0,
+          'bg-red-50 text-red-600': daysPnLPercentage < 0
+        }"
+      >
+        {{ daysPnLPercentage | percent:'1.2-2' }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Total P&L without percentage -->
+  <div
+    class="bg-white p-2 border rounded-md shadow-sm flex flex-col items-center justify-center text-center min-h-16"
+    *ngIf="totalPnL !== undefined && totalPnLPercentage === undefined"
+  >
+    <span class="text-xs text-gray-500 uppercase tracking-wide">Total P&amp;L</span>
+    <span
+      class="text-base font-medium mt-1"
+      [ngClass]="{
+        'text-green-600': totalPnL > 0,
+        'text-red-600': totalPnL < 0,
+        'text-gray-700': totalPnL === 0
+      }"
+    >
+      {{ totalPnL | currency:'INR':'symbol':'1.2-2' }}
+    </span>
+  </div>
+
+  <!-- Total P&L with percentage -->
+  <div
+    class="bg-white p-2 border rounded-md shadow-sm flex flex-col items-center justify-center text-center min-h-16"
+    *ngIf="totalPnL !== undefined && totalPnLPercentage !== undefined"
+  >
+    <span class="text-xs text-gray-500 uppercase tracking-wide">Total P&amp;L</span>
+    <div class="flex items-center justify-center gap-1 mt-1">
+      <span
+        class="text-base font-medium"
+        [ngClass]="{
+          'text-green-600': totalPnL > 0,
+          'text-red-600': totalPnL < 0,
+          'text-gray-700': totalPnL === 0
+        }"
+      >
+        {{ totalPnL | currency:'INR':'symbol':'1.2-2' }}
+      </span>
+      <span
+        class="text-sm rounded-md px-1 py-[1px]"
+        [ngClass]="{
+          'bg-green-50 text-green-600': totalPnLPercentage > 0,
+          'bg-red-50 text-red-600': totalPnLPercentage < 0
+        }"
+      >
+        {{ totalPnLPercentage | percent:'1.2-2' }}
+      </span>
+    </div>
+  </div>
+</div>
