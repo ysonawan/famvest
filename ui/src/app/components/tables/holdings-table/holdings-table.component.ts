@@ -32,8 +32,7 @@ export class HoldingsTableComponent {
   getActionButtons(row: any): any [] {
     let actions: any[] = this.actions;
     if(row.type === 'Mutual Funds') {
-      actions =ls
-      actions.filter(action => action.action !== 'screenerIn' && action.action !== 'yahooFinance' &&
+      actions = actions.filter(action => action.action !== 'screenerIn' && action.action !== 'yahooFinance' &&
         action.action !== 'chart' && action.action !== 'exit');
     }
     if(row.type === 'Stocks') {
