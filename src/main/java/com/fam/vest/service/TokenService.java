@@ -8,5 +8,5 @@ public interface TokenService {
     void renewRequestToken(String tradingAccountUserId);
     String renewRequestTokens(UserDetails userDetails, boolean isOnApplicationStart);
     String getENCToken(TradingAccount tradingAccount);
-    String getTotp(String totpKey);
+    String getTotp(TradingAccount tradingAccount);
 }

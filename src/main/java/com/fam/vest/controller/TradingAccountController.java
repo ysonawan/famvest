@@ -116,7 +116,7 @@ public class TradingAccountController {
     @GetMapping("/{tradingAccountUserId}/totp")
     public ResponseEntity<Object> getTotp(@PathVariable String tradingAccountUserId) {
         UserDetails userDetails = UserDetailsUtil.getCurrentUserDetails();
-        log.info("Get TOTP request received for {} by {}", tradingAccountUserId, userDetails.getUsername());
+        log.debug("Get TOTP request received for {} by {}", tradingAccountUserId, userDetails.getUsername());
         String totp = tradingAccountService.getTotp(userDetails, tradingAccountUserId);
         RestResponse<String> response = new RestResponse<>(REST_RESPONSE_STATUS.SUCCESS, null,
                 String.valueOf(HttpStatus.OK.value()), totp);

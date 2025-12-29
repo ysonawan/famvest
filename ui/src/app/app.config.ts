@@ -10,7 +10,31 @@ import {
 import { ApplicationPropertiesService } from './application-properties.service';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 import {provideToastr} from "ngx-toastr";
-import { NgxEchartsModule } from 'ngx-echarts';
+import { provideEchartsCore } from 'ngx-echarts';
+import * as echarts from 'echarts/core';
+import { LineChart, BarChart } from 'echarts/charts';
+import {
+  TitleComponent,
+  TooltipComponent,
+  GridComponent,
+  LegendComponent,
+  DataZoomComponent,
+  ToolboxComponent
+} from 'echarts/components';
+import { CanvasRenderer } from 'echarts/renderers';
+
+// Register the required components
+echarts.use([
+  TitleComponent,
+  TooltipComponent,
+  GridComponent,
+  LegendComponent,
+  DataZoomComponent,
+  ToolboxComponent,
+  LineChart,
+  BarChart,
+  CanvasRenderer
+]);
 
 export function initConfig(config: ApplicationPropertiesService) {
   return () => config.loadConfig();
@@ -38,10 +62,8 @@ export const appConfig: ApplicationConfig = {
       multi: true
     },
     { provide: LOCALE_ID, useValue: 'en-IN' },
-    importProvidersFrom(
-      NgxEchartsModule.forRoot({
-        echarts: () => import('echarts')
-      })
-    )
+    provideEchartsCore({
+      echarts: echarts
+    })
   ]
 };

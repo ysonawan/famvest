@@ -119,11 +119,11 @@
                 </td>
 
                 <td class="px-2 md:px-4 py-2 md:py-3 text-right whitespace-nowrap">
-                  <div class="flex flex-col gap-1">
+                  <div class="flex flex-col gap-1" *ngIf="mfSipDetails.mfSip.status !== 'PAUSED'">
                     <ng-container *ngIf="isUpcomingSipInThisMonth(mfSipDetails.mfSip.nextInstalment)">
                       <span class=""> <fa-icon [icon]="faClock" class="text-orange-500" matTooltip="Pending for this month"></fa-icon> {{ mfSipDetails.mfSip.nextInstalment | istDate:'date-ordinal' }}</span>
                     </ng-container>
-                    <ng-container *ngIf="!isUpcomingSipInThisMonth(mfSipDetails.mfSip.nextInstalment) && !isSipCompletedInThisMonth(mfSipDetails.mfSip.lastInstalment)">
+                    <ng-container *ngIf="!isUpcomingSipInThisMonth(mfSipDetails.mfSip.nextInstalment)">
                       <span class=" ">{{ mfSipDetails.mfSip.nextInstalment | istDate:'date-ordinal' }}</span>
                     </ng-container>
                   </div>

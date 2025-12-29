@@ -311,7 +311,7 @@ public class ITradingAccountService implements TradingAccountService {
                 throw new ResourceNotFoundException("TOTP key is not configured for this trading account. TOTP cannot be generated.");
             }
             // Use TokenService to generate TOTP
-            String totpPin = tokenService.getTotp(tradingAccount.getTotpKey());
+            String totpPin = tokenService.getTotp(tradingAccount);
             log.debug("TOTP retrieved successfully for trading account: {}", tradingAccountUserId);
             return totpPin;
 

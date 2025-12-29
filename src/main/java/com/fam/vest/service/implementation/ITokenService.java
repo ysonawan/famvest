@@ -131,9 +131,10 @@ public class ITokenService implements TokenService {
     }
 
     @Override
-    public String getTotp(String totpKey) {
+    public String getTotp(TradingAccount tradingAccount) {
         Map<String, String> params = new HashMap<>();
-        params.put("--totp_key", totpKey);
+        params.put("--totp_key", tradingAccount.getTotpKey());
+        params.put("--user_id", tradingAccount.getUserId());
         String getTotpPythonScriptPath = this.getScriptFromResources("scripts/python/get_totp.py");
         if(null == getTotpPythonScriptPath) {
             log.error("Get TOTP python script path is null. Cannot proceed.");
@@ -147,7 +148,7 @@ public class ITokenService implements TokenService {
     private String runPythonScript(SCRIPT_TYPE scriptType, String scriptPath, Map<String, String> params) {
         StringBuilder output = new StringBuilder();
         try {
-            log.info("Running python script for user: {}", params.get("--user_id"));
+            log.debug("Running python script for user: {}", params.get("--user_id"));
             // Ensure the script path is decoded (handles spaces and special characters in the path)
             scriptPath = java.net.URLDecoder.decode(scriptPath, StandardCharsets.UTF_8);
             Process process = this.getProcess(scriptType, scriptPath, params);
@@ -163,7 +164,7 @@ public class ITokenService implements TokenService {
                 log.error("Python script execution failed with exit code: {}. Output: {}", exitCode, output);
                 throw new InternalException("Failed to execute Python script. Output: " + output);
             }
-            log.info("Python script execution completed for user: {}", params.get("--user_id"));
+            log.debug("Python script execution completed for user: {}", params.get("--user_id"));
         } catch (Exception e) {
             log.error("Error executing Python script: {}", e.getMessage(), e);
             throw new InternalException("An error occurred while executing the python script: "+scriptPath);
