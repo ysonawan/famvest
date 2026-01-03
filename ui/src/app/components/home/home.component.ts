@@ -10,11 +10,12 @@ import {
   faBuilding,
   faArrowUp,
   faArrowDown,
-  faRefresh,
   faSpinner,
   faDollarSign,
   faChartBar,
   faArrowTrendDown,
+  faArrowTrendUp,
+  faTrophy,
 } from '@fortawesome/free-solid-svg-icons';
 import { HoldingsService } from '../../services/holdings.service';
 import { PositionsService } from '../../services/positions.service';
@@ -31,6 +32,7 @@ import {expandCollapseAnimation, fadeInUpAnimation} from "../shared/animations";
 import { UserFilterComponent } from "../shared/user-filter/user-filter.component";
 import { WebSocketService } from '../../services/web-socket.service';
 import { PnlDetailsPopupComponent, UserDetailsData, ColumnConfig } from "../shared/pnl-details-popup/pnl-details-popup.component";
+import {MatTooltip} from "@angular/material/tooltip";
 
 interface DashboardStats {
   totalInvestment: number;
@@ -59,17 +61,35 @@ interface DashboardStats {
   availableMarginPercent: number;
 }
 
+interface PortfolioMetrics {
+  historicalValue?: number;
+  historicalInvested?: number;
+  historicalPnl?: number;
+  historicalPnlPercentage?: number;
+  historyDate?: string;
+}
+
+interface PortfolioStatistics {
+  totalHoldingsStocks: number;
+  totalHoldingsMF: number;
+  totalGainers: number;
+  totalLosers: number;
+  bestPerformer: { name: string; returns: number; } | null;
+  worstPerformer: { name: string; returns: number; } | null;
+  topHolding: { name: string; value: number; concentration: number; } | null;
+}
+
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
   standalone: true,
-  imports: [CommonModule, FaIconComponent, RouterModule, TimelineChartComponent, UserFilterComponent, PnlDetailsPopupComponent],
+  imports: [CommonModule, FaIconComponent, RouterModule, TimelineChartComponent, UserFilterComponent, PnlDetailsPopupComponent, MatTooltip, MatTooltip],
   styleUrls: ['./home.component.css'],
   animations: [expandCollapseAnimation, fadeInUpAnimation],
 })
 export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
-  stats: DashboardStats = {
+stats: DashboardStats = {
     totalInvestment: 0,
     currentValue: 0,
     totalGains: 0,
@@ -94,6 +114,24 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     availableMarginPercent: 0
   };
 
+portfolioMetrics: PortfolioMetrics = {
+  historicalValue: 0,
+  historicalInvested: 0,
+  historicalPnl: 0,
+  historicalPnlPercentage: 0,
+  historyDate:''
+}
+
+  portfolioStatistics: PortfolioStatistics = {
+    totalHoldingsStocks: 0,
+    totalHoldingsMF: 0,
+    totalGainers: 0,
+    totalLosers: 0,
+    bestPerformer: null,
+    worstPerformer: null,
+    topHolding: null
+  };
+
   isLoading = true;
   isInitialLoad = true; // Flag to track if this is the first load
   errorMessage = '';
@@ -106,6 +144,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   // Raw data for filtering
   rawData: any = {};
 
+
   // WebSocket
   instrumentTokens: number[] = [];
   private sub?: Subscription;
@@ -117,6 +156,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   popupTitle: string = '';
   popupSortByColumn?: string;
 
+  selectedTimeframe: string = '3M';
+  selectedMetricView: 'returns' | 'gainers-losers' | 'statistics' = 'returns';
+
   // Font Awesome icons
   protected readonly faWallet = faWallet;
   protected readonly faChartLine = faChartLine;
@@ -125,11 +167,13 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   protected readonly faBuilding = faBuilding;
   protected readonly faArrowUp = faArrowUp;
   protected readonly faArrowDown = faArrowDown;
-  protected readonly faRefresh = faRefresh;
   protected readonly faSpinner = faSpinner;
   protected readonly faDollarSign = faDollarSign;
   protected readonly faChartBar = faChartBar;
   protected readonly faArrowTrendDown = faArrowTrendDown;
+  protected readonly faArrowTrendUp = faArrowTrendUp;
+  protected readonly faTrophy = faTrophy;
+  protected readonly Math = Math;
 
   constructor(
     private holdingsService: HoldingsService,
@@ -547,6 +591,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       next: (response) => {
         this.historicalTimelineValues = response.data;
         this.populateTimelineChartData();
+        this.calculateHistoricalStats();
+        this.calculatePortfolioStatistics();
       },
       error: (error) => {
         if(error.error.message) {
@@ -600,6 +646,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     } else {
       this.populateTimelineChartDataForUsers(this.selectedUserIds);
     }
+    this.calculateHistoricalStats();
+    this.calculatePortfolioStatistics();
   }
 
   private populateTimelineChartDataForUsers(userIds: string[]): void {
@@ -881,5 +929,299 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Convert map to array
     return Array.from(userInvestmentMap.values());
+  }
+
+  // Get top gainers for selected timeframe
+  getSelectedTopGainers() {
+    return this.getTopPerformers(true);
+  }
+
+
+
+  private getTopPerformers(gainers: boolean): any[] {
+    if (!this.historicalTimelineValues || this.historicalTimelineValues.length === 0) {
+      return [];
+    }
+
+    const daysAgo = this.getTimeframeDays(this.selectedTimeframe);
+    if (!daysAgo) return [];
+
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() - daysAgo);
+    targetDate.setHours(0, 0, 0, 0);
+
+    // Filter by selected users
+    let filteredData = this.historicalTimelineValues;
+    if (this.selectedUserIds.length > 0 && this.selectedUserIds.length < this.users.length) {
+      filteredData = this.historicalTimelineValues.filter(d =>
+        this.selectedUserIds.includes(d.userId)
+      );
+    }
+
+    // Get current data (today's data)
+    const currentData = new Map<string, any>();
+    filteredData
+      .filter(d => this.isToday(new Date(d.date)))
+      .forEach(d => currentData.set(d.userId, d));
+
+    // Get historical data
+    const historicalData = new Map<string, any>();
+    const historicalEntries = filteredData.filter(d => {
+      const entryDate = new Date(d.date);
+      entryDate.setHours(0, 0, 0, 0);
+      return Math.abs(entryDate.getTime() - targetDate.getTime()) < 24 * 60 * 60 * 1000;
+    });
+    historicalEntries.forEach(d => historicalData.set(d.userId, d));
+
+    // Calculate performance for each user
+    const performances: any[] = [];
+    currentData.forEach((current, userId) => {
+      const historical = historicalData.get(userId);
+      if (historical && historical.netChangePercentage !== undefined) {
+        const currentPercentage = current.netChangePercentage || 0;
+        const historicalPercentage = historical.netChangePercentage || 0;
+        const percentageChange = currentPercentage - historicalPercentage;
+
+        performances.push({
+          userId,
+          userName: this.users.find(u => u.userId === userId)?.profile?.userName || userId,
+          percentageChange,
+          currentValue: current.currentValue || 0,
+          historicalValue: historical.currentValue || 0,
+          absoluteChange: (current.currentValue || 0) - (historical.currentValue || 0),
+          currentPnl: current.netPnl || 0,
+          historicalPnl: historical.netPnl || 0
+        });
+      }
+    });
+
+    // Sort and filter
+    if (gainers) {
+      performances.sort((a, b) => b.percentageChange - a.percentageChange);
+    } else {
+      performances.sort((a, b) => a.percentageChange - b.percentageChange);
+    }
+
+    return performances.slice(0, 5);
+  }
+
+  // Change timeframe
+  changeTimeframe(timeframe: string): void {
+    this.selectedTimeframe = timeframe;
+    // Calculate historical value for the selected timeframe
+    this.calculateHistoricalStats();
+  }
+
+  private calculateHistoricalStats() {
+    if (!this.historicalTimelineValues || this.historicalTimelineValues.length === 0) {
+      return;
+    }
+
+    const daysAgo = this.getTimeframeDays(this.selectedTimeframe);
+    if (!daysAgo) return;
+
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() - daysAgo);
+    targetDate.setHours(0, 0, 0, 0);
+
+    // Filter by selected users
+    let filteredData = this.historicalTimelineValues;
+    if (this.selectedUserIds.length > 0 && this.selectedUserIds.length < this.users.length) {
+      filteredData = this.historicalTimelineValues.map(d => {
+        // Filter holdings within each entry by selected user IDs
+        const filteredHoldings = (d.historicalHoldingsTimelines || []).filter((h: any) =>
+          this.selectedUserIds.includes(h.userId)
+        );
+        // Return entry with filtered holdings
+        return {
+          ...d,
+          historicalHoldingsTimelines: filteredHoldings
+        };
+      }).filter(d => d.historicalHoldingsTimelines.length > 0); // Keep only entries with holdings
+    }
+
+    // Find closest historical date
+    const historicalEntries = this.findClosestHistoricalData(filteredData, targetDate);
+    if (!historicalEntries || historicalEntries.length === 0) {
+      return;
+    }
+
+    // Calculate totals for historical date
+    const totalValue = historicalEntries.reduce((sum: number, entry: any) => {
+      const holdingsTotal = (entry.historicalHoldingsTimelines || []).reduce((holdingsSum: number, holding: any) =>
+        holdingsSum + (holding.currentValue || 0), 0);
+      return sum + holdingsTotal;
+    }, 0);
+
+    const totalInvested = historicalEntries.reduce((sum: number, entry: any) => {
+      const holdingsTotal = (entry.historicalHoldingsTimelines || []).reduce((holdingsSum: number, holding: any) =>
+        holdingsSum + (holding.investedAmount || 0), 0);
+      return sum + holdingsTotal;
+    }, 0);
+
+    const totalPnl = historicalEntries.reduce((sum: number, entry: any) => {
+      const holdingsTotal = (entry.historicalHoldingsTimelines || []).reduce((holdingsSum: number, holding: any) =>
+        holdingsSum + (holding.netPnl || 0), 0);
+      return sum + holdingsTotal;
+    }, 0);
+
+    // Calculate historical PnL percentage
+    const totalPnlPercentage = totalInvested > 0 ? (totalPnl / totalInvested) : 0;
+
+// Get the actual date from the historical entry
+    const dateStr = historicalEntries.length > 0
+      ? this.formatDate(new Date(historicalEntries[0].date))
+      : this.formatDate(targetDate);
+
+    this.portfolioMetrics.historicalValue = totalValue;
+    this.portfolioMetrics.historyDate = dateStr;
+    this.portfolioMetrics.historicalInvested  = totalInvested;
+    this.portfolioMetrics.historicalPnl = totalPnl;
+    this.portfolioMetrics.historicalPnlPercentage = totalPnlPercentage;
+  }
+
+  // Helper method to get days for a timeframe
+  private getTimeframeDays(timeframe: string): number | null {
+    switch (timeframe) {
+      case '1D': return 1;
+      case '1W': return 7;
+      case '1M': return 30;
+      case '3M': return 90;
+      case '6M': return 180;
+      case '1Y': return 365;
+      default: return null;
+    }
+  }
+
+  // Helper method to find closest historical data
+  private findClosestHistoricalData(data: any[], targetDate: Date): any[] | null {
+    // Group by date
+    const groupedByDate = new Map<string, any[]>();
+    data.forEach(entry => {
+      const dateKey = this.formatDate(new Date(entry.date));
+      if (!groupedByDate.has(dateKey)) {
+        groupedByDate.set(dateKey, []);
+      }
+      groupedByDate.get(dateKey)!.push(entry);
+    });
+
+    // Find closest date
+    const targetTime = targetDate.getTime();
+    let closestDate: string | null = null;
+    let closestDiff = Infinity;
+
+    groupedByDate.forEach((_, dateKey) => {
+      const date = new Date(dateKey);
+      const diff = Math.abs(date.getTime() - targetTime);
+      if (diff < closestDiff) {
+        closestDiff = diff;
+        closestDate = dateKey;
+      }
+    });
+
+    return closestDate ? groupedByDate.get(closestDate) || null : null;
+  }
+
+  // Helper method to check if date is today
+  private isToday(date: Date): boolean {
+    const today = new Date();
+    return date.getDate() === today.getDate() &&
+           date.getMonth() === today.getMonth() &&
+           date.getFullYear() === today.getFullYear();
+  }
+
+  // Helper method to format date to YYYY-MM-DD
+  private formatDate(date: Date): string {
+    return date.toISOString().split('T')[0];
+  }
+
+  // Change metric view
+  changeMetricView(view: 'returns' | 'gainers-losers' | 'statistics'): void {
+    this.selectedMetricView = view;
+  }
+
+  // Calculate portfolio statistics from holdings
+  private calculatePortfolioStatistics(): void {
+    let holdings = this.rawData.holdings || [];
+
+    // Filter by selected users if applicable
+    if (this.selectedUserIds.length > 0 && this.selectedUserIds.length < this.users.length) {
+      holdings = holdings.filter((h: any) => this.selectedUserIds.includes(h.userId));
+    }
+
+    // Count stocks and MF holdings
+    const stocksHoldings = holdings.filter((h: any) => h.type === 'Stocks');
+    const mfHoldings = holdings.filter((h: any) => h.type === 'Mutual Funds');
+
+    this.portfolioStatistics.totalHoldingsStocks = stocksHoldings.length;
+    this.portfolioStatistics.totalHoldingsMF = mfHoldings.length;
+
+    // Calculate gainers and losers
+    let gainersCount = 0;
+    let losersCount = 0;
+    let totalInvestment = 0;
+
+    let bestPerformer: { name: string; returns: number; } | null = null;
+    let worstPerformer: { name: string; returns: number; } | null = null;
+    let topHolding: { name: string; value: number; concentration: number; } | null = null;
+
+    let maxReturn = -Infinity;
+    let minReturn = Infinity;
+    let maxValue = 0;
+
+    // Calculate total portfolio value first
+    const totalPortfolioValue = holdings.reduce((sum: number, h: any) => {
+      return sum + (h.currentValue || 0);
+    }, 0);
+
+    holdings.forEach((holding: any) => {
+      const investment = holding.quantity * holding.averagePrice;
+      const currentValue = holding.quantity * holding.lastPrice;
+      const pnl = currentValue - investment;
+      const returnPercent = investment > 0 ? (pnl / investment) * 100 : 0;
+
+      // Count gainers and losers
+      if (pnl > 0) {
+        gainersCount++;
+      } else if (pnl < 0) {
+        losersCount++;
+      }
+      totalInvestment += investment;
+
+      // Track best performer
+      if (returnPercent > maxReturn) {
+        maxReturn = returnPercent;
+        bestPerformer = {
+          name: holding.instrument || holding.tradingSymbol,
+          returns: returnPercent
+        };
+      }
+
+      // Track worst performer
+      if (returnPercent < minReturn) {
+        minReturn = returnPercent;
+        worstPerformer = {
+          name: holding.instrument || holding.tradingSymbol,
+          returns: returnPercent
+        };
+      }
+
+      // Track top holding by value
+      if (currentValue > maxValue) {
+        maxValue = currentValue;
+        const concentration = totalPortfolioValue > 0 ? (currentValue / totalPortfolioValue) * 100 : 0;
+        topHolding = {
+          name: holding.instrument || holding.tradingSymbol,
+          value: currentValue,
+          concentration: concentration
+        };
+      }
+    });
+
+    this.portfolioStatistics.totalGainers = gainersCount;
+    this.portfolioStatistics.totalLosers = losersCount;
+    this.portfolioStatistics.bestPerformer = bestPerformer;
+    this.portfolioStatistics.worstPerformer = worstPerformer;
+    this.portfolioStatistics.topHolding = topHolding;
   }
 }

@@ -180,7 +180,7 @@
 
           </div>
           <!-- Today's Gains and Percentage in second line -->
-          <div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
+          <div class="flex items-center justify-between mt-2 border-t border-gray-100">
             <div class="text-base text-gray-600 font-medium">Day's P&L</div>
             <div class="flex items-center gap-1">
               <span class="text-base font-medium mr-2"
@@ -250,7 +250,7 @@
 
           </div>
           <!-- Max Profit in second line -->
-          <div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
+          <div class="flex items-center justify-between mt-2 border-t border-gray-100">
             <div class="text-base text-gray-600 font-medium">Max Profit</div>
             <div class="flex items-center gap-1">
               <span class="text-base font-medium text-gray-700">
@@ -398,8 +398,412 @@
       </div>
     </div>
 
+    <!-- Portfolio Metrics Section -->
+    <div *ngIf="historicalTimelineValues && historicalTimelineValues.length > 0" class="bg-white p-4 md:p-6 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border-t-4 border-purple-500 relative overflow-hidden mb-8">
+      <div class="absolute bottom-0 right-0 w-32 h-32 bg-purple-50 rounded-tl-full opacity-40"></div>
+
+      <div class="relative z-10">
+        <!-- Header with Title and Timeframe Selector -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 md:mb-0">
+          <div class="flex items-center mb-3">
+            <span class="text-lg font-medium text-gray-600 m-0">Portfolio Analytics</span>
+          </div>
+
+          <!-- Timeframe Selector -->
+          <div *ngIf="selectedMetricView !== 'statistics'" class="flex gap-2 flex-wrap">
+            <button *ngFor="let tf of ['1D', '1W', '1M', '3M', '6M', '1Y']"
+                    (click)="changeTimeframe(tf)"
+                    [class.bg-purple-600]="selectedTimeframe === tf"
+                    [class.text-white]="selectedTimeframe === tf"
+                    [class.bg-gray-100]="selectedTimeframe !== tf"
+                    [class.text-gray-600]="selectedTimeframe !== tf"
+                    class="px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 hover:shadow-md">
+              {{ tf }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Metric View Tabs -->
+        <div class="flex gap-2 mb-6 border-b border-gray-200 overflow-x-auto">
+          <button (click)="changeMetricView('returns')"
+                  [class.border-purple-600]="selectedMetricView === 'returns'"
+                  [class.text-purple-600]="selectedMetricView === 'returns'"
+                  [class.border-transparent]="selectedMetricView !== 'returns'"
+                  [class.text-gray-600]="selectedMetricView !== 'returns'"
+                  class="px-4 py-2 border-b-2 font-medium transition-all duration-200 whitespace-nowrap">
+            Portfolio Value
+          </button>
+          <button (click)="changeMetricView('gainers-losers')"
+                  [class.border-purple-600]="selectedMetricView === 'gainers-losers'"
+                  [class.text-purple-600]="selectedMetricView === 'gainers-losers'"
+                  [class.border-transparent]="selectedMetricView !== 'gainers-losers'"
+                  [class.text-gray-600]="selectedMetricView !== 'gainers-losers'"
+                  class="px-4 py-2 border-b-2 font-medium transition-all duration-200 whitespace-nowrap">
+            Top Gainers/Losers
+          </button>
+          <button (click)="changeMetricView('statistics')"
+                  [class.border-purple-600]="selectedMetricView === 'statistics'"
+                  [class.text-purple-600]="selectedMetricView === 'statistics'"
+                  [class.border-transparent]="selectedMetricView !== 'statistics'"
+                  [class.text-gray-600]="selectedMetricView !== 'statistics'"
+                  class="px-4 py-2 border-b-2 font-medium transition-all duration-200 whitespace-nowrap">
+            Statistics
+          </button>
+        </div>
+
+        <!-- Portfolio Value View -->
+        <div *ngIf="selectedMetricView === 'returns'" [@expandCollapseAnimation]>
+          <div class="space-y-4">
+            <!-- Three Column Layout: Historical, Current, Change Analysis -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+              <!-- Historical Card -->
+              <div class=" p-4 rounded-lg border  shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                  <div class="text-base font-semibold text-gray-600 flex items-center gap-2">
+                    <fa-icon [icon]="faChartBar" class="text-base text-blue-700"></fa-icon>
+                    Historical Portfolio
+                  </div>
+                  <span class="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">{{ portfolioMetrics.historyDate || 'N/A' }}</span>
+                </div>
+                <div class="space-y-3">
+                  <div class="flex justify-between items-center pb-2 border-b border-blue-100">
+                    <span class="text-base text-gray-600">Total Investment</span>
+                    <span class="font-medium text-gray-800 text-base">₹{{ (portfolioMetrics.historicalInvested || 0) | number:'1.0-0' }}</span>
+                  </div>
+                  <div class="flex justify-between items-center pb-2 border-b border-blue-100">
+                    <span class="text-base text-gray-600">Current Value</span>
+                    <span class="font-medium text-gray-800 text-base">₹{{ (portfolioMetrics.historicalValue || 0) | number:'1.0-0' }}</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-base text-gray-600">Total P&L</span>
+                    <div class="text-right">
+                      <div class="flex items-center gap-1">
+                        <span class="text-base font-medium mr-2"
+                              [ngClass]="{
+                            'text-green-600': (portfolioMetrics.historicalPnl ?? 0) >= 0,
+                            'text-red-600': (portfolioMetrics.historicalPnl ?? 0) < 0,
+                            'text-gray-700': (portfolioMetrics.historicalPnl ?? 0) === 0
+                          }">
+                          ₹{{ portfolioMetrics.historicalPnl | number:'1.2-2' }}
+                        </span>
+                          <span
+                            class="text-sm rounded-md px-1 py-[1px]"
+                            [ngClass]="{
+                            'bg-green-50 text-green-600':  (portfolioMetrics.historicalPnl ?? 0) > 0,
+                            'bg-red-50 text-red-600':  (portfolioMetrics.historicalPnl ?? 0) < 0
+                          }"
+                          >
+                          <fa-icon [icon]="(portfolioMetrics.historicalPnl ?? 0) >= 0 ? faArrowUp : faArrowDown" class="mr-1 text-xs"></fa-icon>
+                            {{ portfolioMetrics.historicalPnlPercentage | percent:'1.2-2' }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Current Card -->
+              <div class=" p-4 rounded-lg border  shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                  <div class="text-base font-semibold  text-gray-600 flex items-center gap-2">
+                    <fa-icon [icon]="faChartLine" class="text-base text-emerald-700"></fa-icon>
+                    Current Portfolio
+                  </div>
+                  <span class="text-xs text-emerald-600 bg-emerald-100 px-2 py-1 rounded">Today</span>
+                </div>
+                <div class="space-y-3">
+                  <div class="flex justify-between items-center pb-2 border-b ">
+                    <span class="text-base text-gray-600">Total Investment</span>
+                    <span class="font-medium text-gray-800 text-base">₹{{ stats.totalInvestment | number:'1.0-0' }}</span>
+                  </div>
+                  <div class="flex justify-between items-center pb-2 border-b ">
+                    <span class="text-base text-gray-600">Current Value</span>
+                    <span class="font-medium text-gray-800 text-base">₹{{ stats.currentValue | number:'1.0-0' }}</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-base text-gray-600">Total P&L</span>
+                    <div class="text-right">
+                      <div class="flex items-center gap-1">
+                        <span class="text-base font-medium mr-2"
+                              [ngClass]="{
+                            'text-green-600': stats.totalGains  >= 0,
+                            'text-red-600': stats.totalGains  < 0,
+                            'text-gray-700': stats.totalGains === 0
+                          }">
+                          ₹{{ stats.totalGains | number:'1.2-2' }}
+                        </span>
+                        <span
+                          class="text-sm rounded-md px-1 py-[1px]"
+                          [ngClass]="{
+                            'bg-green-50 text-green-600':  stats.totalGains  > 0,
+                            'bg-red-50 text-red-600':  stats.totalGains < 0
+                          }"
+                        >
+                          <fa-icon [icon]="stats.totalGains >= 0 ? faArrowUp : faArrowDown" class="mr-1 text-xs"></fa-icon>
+                          {{ stats.totalGainsPercent | percent:'1.2-2' }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Change Analysis -->
+              <div class=" p-4 rounded-lg border  shadow-sm">
+                <div class="text-base font-semibold  text-gray-600 mb-3 flex items-center gap-2">
+                  <fa-icon [icon]="faArrowTrendUp" class="text-base text-purple-700"></fa-icon>
+                  Change Analysis ({{ selectedTimeframe }})
+                </div>
+                <div class="space-y-3">
+                  <!-- Investment Change -->
+                  <div class="flex justify-between items-center pb-2 border-b ">
+                    <span class="text-base text-gray-600">Investment Change</span>
+                    <div class="text-right">
+                      <div class="flex items-center gap-1">
+                        <span class="text-base font-medium mr-2"
+                              [class.text-blue-600]="(stats.totalInvestment - (portfolioMetrics.historicalInvested || 0)) >= 0"
+                              [class.text-orange-600]="(stats.totalInvestment - (portfolioMetrics.historicalInvested || 0)) < 0">
+                          ₹{{ (stats.totalInvestment - (portfolioMetrics.historicalInvested || 0)) | number:'1.0-0' }}
+                        </span>
+                        <span class="text-sm rounded-md px-1 py-[1px]"
+                              [ngClass]="{
+                                'bg-blue-50 text-blue-600': (stats.totalInvestment - (portfolioMetrics.historicalInvested || 0)) >= 0,
+                                'bg-orange-50 text-orange-600': (stats.totalInvestment - (portfolioMetrics.historicalInvested || 0)) < 0
+                              }">
+                          <fa-icon [icon]="(stats.totalInvestment - (portfolioMetrics.historicalInvested || 0)) >= 0 ? faArrowUp : faArrowDown" class="mr-1 text-xs"></fa-icon>
+                          {{ (portfolioMetrics.historicalInvested && portfolioMetrics.historicalInvested > 0 ? ((stats.totalInvestment - portfolioMetrics.historicalInvested) / portfolioMetrics.historicalInvested) * 100 : 0) | number:'1.2-2' }}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Portfolio Value Change -->
+                  <div class="flex justify-between items-center pb-2 border-b ">
+                    <span class="text-base text-gray-600">Value Change</span>
+                    <div class="text-right">
+                      <div class="flex items-center gap-1">
+                        <span class="text-base font-medium mr-2"
+                              [class.text-blue-600]="(stats.currentValue - (portfolioMetrics.historicalValue || 0)) >= 0"
+                              [class.text-orange-600]="(stats.currentValue - (portfolioMetrics.historicalValue || 0)) < 0">
+                          ₹{{ (stats.currentValue - (portfolioMetrics.historicalValue || 0)) | number:'1.0-0' }}
+                        </span>
+                        <span class="text-sm rounded-md px-1 py-[1px]"
+                              [ngClass]="{
+                                'bg-blue-50 text-blue-600': (stats.currentValue - (portfolioMetrics.historicalValue || 0)) >= 0,
+                                'bg-orange-50 text-orange-600': (stats.currentValue - (portfolioMetrics.historicalValue || 0)) < 0
+                              }">
+                          <fa-icon [icon]="(stats.currentValue - (portfolioMetrics.historicalValue || 0)) >= 0 ? faArrowUp : faArrowDown" class="mr-1 text-xs"></fa-icon>
+                          {{ (portfolioMetrics.historicalValue && portfolioMetrics.historicalValue > 0 ? ((stats.currentValue - portfolioMetrics.historicalValue) / portfolioMetrics.historicalValue) * 100 : 0) | number:'1.2-2' }}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- P&L Change -->
+                  <div class="flex justify-between items-center">
+                    <span class="text-base text-gray-600">P&L Change</span>
+                    <div class="text-right">
+                      <div class="flex items-center gap-1">
+                        <span class="text-base font-medium mr-2"
+                              [class.text-blue-600]="(stats.totalGains - (portfolioMetrics.historicalPnl || 0)) >= 0"
+                              [class.text-orange-600]="(stats.totalGains - (portfolioMetrics.historicalPnl || 0)) < 0">
+                          ₹{{ (stats.totalGains - (portfolioMetrics.historicalPnl || 0)) | number:'1.0-0' }}
+                        </span>
+                        <span class="text-sm rounded-md px-1 py-[1px]"
+                              [ngClass]="{
+                                'bg-blue-50 text-blue-600': (stats.totalGains - (portfolioMetrics.historicalPnl || 0)) >= 0,
+                                'bg-orange-50 text-orange-600': (stats.totalGains - (portfolioMetrics.historicalPnl || 0)) < 0
+                              }">
+                          <fa-icon [icon]="(stats.totalGains - (portfolioMetrics.historicalPnl || 0)) >= 0 ? faArrowUp : faArrowDown" class="mr-1 text-xs"></fa-icon>
+                          {{ (portfolioMetrics.historicalPnl && Math.abs(portfolioMetrics.historicalPnl || 0) > 0 ? ((stats.totalGains - (portfolioMetrics.historicalPnl || 0)) / Math.abs(portfolioMetrics.historicalPnl || 0)) * 100 : 0) | number:'1.2-2' }}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Info Note -->
+            <div class="bg-blue-50 border-l-4 border-blue-400 p-3 rounded">
+              <p class="text-sm text-blue-800">
+                <strong>Note:</strong> Historical data from {{ portfolioMetrics.historyDate || 'selected date' }}.
+                Investment Change shows capital added/withdrawn. Value Change includes price movements. P&L Change shows profit/loss improvement.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Gainers-losers View -->
+        <div *ngIf="selectedMetricView === 'gainers-losers'" [@expandCollapseAnimation]>
+          <div *ngIf="getSelectedTopGainers().length > 0; else noGainers">
+            <div class="bg-green-50 border-l-4 border-green-400 p-2 mb-3">
+              <p class="text-xs text-green-800">
+                <strong>Note:</strong> Shows pure price performance (excludes SIPs/new purchases)
+              </p>
+            </div>
+            <div class="space-y-2">
+            <div *ngFor="let gainer of getSelectedTopGainers(); let i = index"
+                 class="bg-gradient-to-r from-green-50 to-white p-3 rounded-lg border border-green-100 hover:shadow-md transition-all duration-200">
+              <div class="flex items-center justify-between gap-3">
+                <!-- Left: Rank and Stock -->
+                <div class="flex items-center gap-2 flex-1 min-w-0">
+                  <div class="bg-green-100 text-green-700 rounded-full w-6 h-6 flex items-center justify-center font-bold text-xs flex-shrink-0">
+                    {{ i + 1 }}
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <div class="font-bold text-gray-800 text-sm truncate">{{ gainer.tradingSymbol }}</div>
+                    <div class="text-xs text-gray-500">{{ gainer.userId }}</div>
+                  </div>
+                </div>
+
+                <!-- Middle: Quantity -->
+                <div class="text-center flex-shrink-0">
+                  <div class="text-xs text-gray-500">Qty</div>
+                  <div class="text-sm font-medium text-gray-700">
+                    {{ Math.min(gainer.previousQuantity, gainer.currentQuantity) | number:'1.0-0' }}
+                  </div>
+                </div>
+
+                <!-- Right: Values and Gain -->
+                <div class="text-right flex-shrink-0">
+                  <div class="flex items-center justify-end gap-1 text-green-600 font-bold text-base">
+                    <fa-icon [icon]="faArrowUp" class="text-xs"></fa-icon>
+                    {{ gainer.percentageChange | number:'1.1-1' }}%
+                  </div>
+                  <div class="text-xs text-gray-600">₹{{ gainer.absoluteChange | number:'1.0-0' }}</div>
+                </div>
+              </div>
+
+              <!-- Compact value display -->
+              <div class="flex justify-end gap-3 mt-1 text-xs text-gray-500">
+                <span>₹{{ gainer.previousValue | number:'1.0-0' }}</span>
+                <span>→</span>
+                <span class="text-gray-700 font-medium">₹{{ gainer.currentValue | number:'1.0-0' }}</span>
+              </div>
+            </div>
+          </div>
+          </div>
+          <ng-template #noGainers>
+            <div class="text-center py-8 text-gray-500">
+              <fa-icon [icon]="faTrophy" class="text-4xl mb-2"></fa-icon>
+              <p>No gainers or losers data available for this timeframe</p>
+            </div>
+          </ng-template>
+        </div>
+
+        <!-- Statistics View -->
+        <div *ngIf="selectedMetricView === 'statistics'" [@expandCollapseAnimation]>
+          <div class="space-y-4">
+            <!-- Three Column Layout: Historical, Current, Change Analysis -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+              <!-- Historical Card -->
+              <div class=" p-4 rounded-lg border  shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                  <div class="text-base font-semibold  text-gray-600 flex items-center gap-2">
+                    <fa-icon [icon]="faChartBar" class="text-base text-blue-700"></fa-icon>
+                    Holdings
+                  </div>
+                </div>
+                <div class="space-y-3">
+                  <div class="flex justify-between items-center pb-2 border-b ">
+                    <span class="text-base text-gray-600">Total Holdings</span>
+                    <span class="font-medium text-gray-800 text-base">{{ (portfolioStatistics.totalHoldingsStocks+portfolioStatistics.totalHoldingsMF || 0) }}</span>
+                  </div>
+                  <div class="flex justify-between items-center pb-2 border-b ">
+                    <span class="text-base text-gray-600">Mutual Funds</span>
+                    <span class="font-medium text-gray-800 text-base">{{ (portfolioStatistics.totalHoldingsMF || 0) }}</span>
+                  </div>
+                  <div class="flex justify-between items-center pb-2 border-b ">
+                    <span class="text-base text-gray-600">Stocks</span>
+                    <span class="font-medium text-gray-800 text-base">{{ (portfolioStatistics.totalHoldingsStocks || 0) }}</span>
+                  </div>
+                  <div class="flex justify-between items-center pb-2 border-b ">
+                    <span class="text-base text-gray-600">Total Gainers</span>
+                    <span class="font-medium text-gray-800 text-base">{{ portfolioStatistics.totalGainers }}</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-base text-gray-600">Total Losers</span>
+                    <span class="font-medium text-gray-800 text-base">{{ portfolioStatistics.totalLosers  }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Change Analysis -->
+              <div class=" p-4 rounded-lg border  shadow-sm">
+                <div class="text-base font-semibold text-gray-600 mb-3 flex items-center gap-2">
+                  <fa-icon [icon]="faArrowTrendUp" class="text-base text-purple-700"></fa-icon>
+                  Performers Summary
+                </div>
+                <div class="space-y-3">
+                  <!-- Investment Change -->
+                  <div class="flex justify-between items-center pb-2 border-b ">
+                    <span class="text-base text-gray-600">Best Performer</span>
+
+                    <div class="text-right">
+                      <div class="flex items-center gap-1">
+                        <span class="hover:text-blue-600 truncate max-w-xs bg-none border-none p-0 m-0 text-left text-gray-800 font-medium"
+                          [matTooltip]="portfolioStatistics.bestPerformer?.name">
+                          {{ portfolioStatistics.bestPerformer?.name }}
+                        </span>
+                        <span class="text-sm rounded-md px-1 py-[1px]" *ngIf="(portfolioStatistics.bestPerformer?.name || '').length > 0"
+                              [ngClass]="{
+                                'bg-green-50 text-green-600': (portfolioStatistics.bestPerformer?.returns || 0) >= 0,
+                                'bg-red-50 text-red-600': (portfolioStatistics.bestPerformer?.returns || 0) < 0
+                              }">
+                          <fa-icon [icon]="(portfolioStatistics.bestPerformer?.returns || 0) >= 0 ? faArrowUp : faArrowDown" class="mr-1 text-xs"></fa-icon>
+                          {{ portfolioStatistics.bestPerformer?.returns || 0 | number:'1.2-2' }}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Portfolio Value Change -->
+                  <div class="flex justify-between items-center pb-2 border-b ">
+                    <span class="text-base text-gray-600">Worst Performer</span>
+                    <div class="text-right">
+                      <div class="flex items-center gap-1">
+                         <span class="hover:text-blue-600 truncate max-w-xs bg-none border-none p-0 m-0 text-left text-gray-800 font-medium"
+                               [matTooltip]="portfolioStatistics.worstPerformer?.name">
+                          {{ portfolioStatistics.worstPerformer?.name }}
+                        </span>
+                        <span class="text-sm rounded-md px-1 py-[1px]" *ngIf="(portfolioStatistics.worstPerformer?.name || '').length > 0"
+                              [ngClass]="{
+                                'bg-green-50 text-green-600': (portfolioStatistics.worstPerformer?.returns || 0) >= 0,
+                                'bg-red-50 text-red-600': (portfolioStatistics.worstPerformer?.returns || 0) < 0
+                              }">
+                          <fa-icon [icon]="(portfolioStatistics.worstPerformer?.returns || 0) >= 0 ? faArrowUp : faArrowDown" class="mr-1 text-xs"></fa-icon>
+                          {{ portfolioStatistics.worstPerformer?.returns || 0 | number:'1.2-2' }}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- P&L Change -->
+                  <div>
+                    <div class="flex justify-between items-center mb-2">
+                      <span class="text-base text-gray-600">Top Holding</span>
+                      <span class="hover:text-blue-600 truncate max-w-xs text-gray-800 font-medium"
+                            [matTooltip]="portfolioStatistics.topHolding?.name">
+                        {{ portfolioStatistics.topHolding?.name }}
+                      </span>
+                    </div>
+                    <div class="space-y-1" *ngIf="(portfolioStatistics.topHolding?.name || '').length > 0">
+                      <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-purple-600 h-2 rounded-full transition-all duration-300" [style.width.%]="portfolioStatistics.topHolding?.concentration"></div>
+                      </div>
+                      <div class="text-sm text-purple-600 text-right font-medium">₹{{portfolioStatistics.topHolding?.value | number:'1.0-0'}} ({{ portfolioStatistics.topHolding?.concentration | number:'1.2-2' }}%)</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <!-- Performance Summary -->
-    <div class="bg-white p-4 md:p-6 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border-t-4 border-gray-500 relative overflow-hidden group">
+    <div *ngIf="historicalTimelineValues && historicalTimelineValues.length > 0" class="bg-white p-4 md:p-6 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border-t-4 border-gray-500 relative overflow-hidden group">
       <div class="absolute bottom-0 left-0 w-24 h-24 bg-gray-50 rounded-tr-full opacity-40 group-hover:opacity-60 transition-opacity"></div>
       <div class="flex items-center mb-3">
         <span class="text-lg font-medium text-gray-600 m-0">Portfolio Performance</span>
@@ -417,7 +821,6 @@
         />
       </div>
     </div>
-
   </div>
 </div>
 
