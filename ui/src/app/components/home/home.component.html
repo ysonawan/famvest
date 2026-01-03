@@ -464,7 +464,7 @@
                     <fa-icon [icon]="faChartBar" class="text-base text-blue-700"></fa-icon>
                     Historical Portfolio
                   </div>
-                  <span class="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">{{ portfolioMetrics.historyDate || 'N/A' }}</span>
+                  <span class="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">{{ portfolioMetrics.historyDate ? (portfolioMetrics.historyDate | date:'dd-MMM-yyyy') : 'N/A' }}</span>
                 </div>
                 <div class="space-y-3">
                   <div class="flex justify-between items-center pb-2 border-b border-blue-100">
@@ -636,60 +636,111 @@
 
         <!-- Top Gainers-losers View -->
         <div *ngIf="selectedMetricView === 'gainers-losers'" [@expandCollapseAnimation]>
-          <div *ngIf="getSelectedTopGainers().length > 0; else noGainers">
-            <div class="bg-green-50 border-l-4 border-green-400 p-2 mb-3">
-              <p class="text-xs text-green-800">
-                <strong>Note:</strong> Shows pure price performance (excludes SIPs/new purchases)
-              </p>
-            </div>
-            <div class="space-y-2">
-            <div *ngFor="let gainer of getSelectedTopGainers(); let i = index"
-                 class="bg-gradient-to-r from-green-50 to-white p-3 rounded-lg border border-green-100 hover:shadow-md transition-all duration-200">
-              <div class="flex items-center justify-between gap-3">
-                <!-- Left: Rank and Stock -->
-                <div class="flex items-center gap-2 flex-1 min-w-0">
-                  <div class="bg-green-100 text-green-700 rounded-full w-6 h-6 flex items-center justify-center font-bold text-xs flex-shrink-0">
-                    {{ i + 1 }}
+          <div *ngIf="isLoadingGainersLosers" class="text-center py-8">
+            <fa-icon [icon]="faSpinner" [class.fa-spin]="isLoadingGainersLosers" class="text-4xl text-purple-600"></fa-icon>
+            <p class="mt-2 text-gray-600">Loading gainers and losers...</p>
+          </div>
+
+          <div *ngIf="!isLoadingGainersLosers && (getSelectedTopGainers().length > 0 || getSelectedTopLosers().length > 0)">
+
+            <div class="space-y-4">
+              <!-- Two Column Layout: Top Gainers and Top Losers -->
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+                <!-- Top Gainers Card -->
+                <div class="p-4 rounded-lg border shadow-sm">
+                  <div class="flex items-center justify-between mb-3">
+                    <div class="text-base font-semibold text-gray-600 flex items-center gap-2">
+                      <fa-icon [icon]="faArrowTrendUp" class="text-base text-green-700"></fa-icon>
+                      Top 5 Gainers
+                    </div>
+                    <span class="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">{{ gainersLosersData?.snapshotDate ? (gainersLosersData.snapshotDate | date:'dd-MMM-yyyy') : 'N/A' }} vs Today</span>
                   </div>
-                  <div class="min-w-0 flex-1">
-                    <div class="font-bold text-gray-800 text-sm truncate">{{ gainer.tradingSymbol }}</div>
-                    <div class="text-xs text-gray-500">{{ gainer.userId }}</div>
+                  <div class="space-y-3" *ngIf="getSelectedTopGainers().length > 0; else noGainers">
+                    <div *ngFor="let gainer of getSelectedTopGainers(); let i = index; let isLast = last"
+                         class="flex justify-between items-center"
+                         [class.pb-2]="!isLast"
+                         [class.border-b]="!isLast">
+                      <span class="hover:text-blue-600 truncate max-w-xs bg-none border-none p-0 m-0 text-left text-gray-700 font-medium"
+                            [matTooltip]="(gainer.instrument || gainer.tradingSymbol) + ' (' + gainer.userId + ')'">
+                           {{ i + 1 }}. {{ gainer.instrument || gainer.tradingSymbol }}
+                      </span>
+                      <div class="text-right">
+                        <div class="flex items-center gap-1">
+                          <span class="text-gray-500 hidden md:block">{{ gainer.previousPrice | number:'1.2-2' }} → {{ gainer.currentPrice | number:'1.2-2' }}</span>
+                          <span class="text-sm rounded-md px-1 py-[1px]"
+                                [matTooltip]="(gainer.previousPrice | number:'1.2-2') +' → '+ (gainer.currentPrice | number:'1.2-2')"
+                                [ngClass]="{
+                                'bg-green-50 text-green-600': (gainer.percentageChange || 0) >= 0,
+                                'bg-red-50 text-red-600': (gainer.percentageChange || 0) < 0
+                              }">
+                            <fa-icon [icon]="(gainer.percentageChange || 0) >= 0 ? faArrowUp : faArrowDown" class="mr-1 text-xs"></fa-icon>
+                            {{ gainer.percentageChange || 0 | number:'1.2-2' }}%
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
+                  <ng-template #noGainers>
+                    <div class="text-center py-4 text-gray-400 text-sm">
+                      No gainers for this timeframe
+                    </div>
+                  </ng-template>
                 </div>
 
-                <!-- Middle: Quantity -->
-                <div class="text-center flex-shrink-0">
-                  <div class="text-xs text-gray-500">Qty</div>
-                  <div class="text-sm font-medium text-gray-700">
-                    {{ Math.min(gainer.previousQuantity, gainer.currentQuantity) | number:'1.0-0' }}
+                <!-- Top Losers Card -->
+                <div class="p-4 rounded-lg border shadow-sm">
+                  <div class="flex items-center justify-between mb-3">
+                    <div class="text-base font-semibold text-gray-600 flex items-center gap-2">
+                      <fa-icon [icon]="faArrowTrendDown" class="text-base text-red-700"></fa-icon>
+                      Top 5 Losers
+                    </div>
+                    <span class="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">{{ gainersLosersData?.snapshotDate ? (gainersLosersData.snapshotDate | date:'dd-MMM-yyyy') : 'N/A' }} vs Today</span>
                   </div>
+                  <div class="space-y-3" *ngIf="getSelectedTopLosers().length > 0; else noLosers">
+                    <div *ngFor="let loser of getSelectedTopLosers(); let i = index; let isLast = last"
+                         class="flex justify-between items-center"
+                         [class.pb-2]="!isLast"
+                         [class.border-b]="!isLast">
+
+                      <span class="hover:text-blue-600 truncate max-w-xs bg-none border-none p-0 m-0 text-left text-gray-700 font-medium"
+                            [matTooltip]="(loser.instrument || loser.tradingSymbol) + ' (' + loser.userId + ')'">
+                           {{ i + 1 }}. {{ loser.instrument || loser.tradingSymbol }}
+                      </span>
+                      <div class="text-right">
+                        <div class="flex items-center gap-1">
+                          <span class="text-gray-500 hidden md:block"> {{ loser.previousPrice | number:'1.2-2' }} → {{ loser.currentPrice | number:'1.2-2' }} </span>
+                          <span class="text-sm rounded-md px-1 py-[1px]"
+                                [matTooltip]="(loser.previousPrice | number:'1.2-2') +' → '+ (loser.currentPrice | number:'1.2-2')"
+                                [ngClass]="{
+                                'bg-green-50 text-green-600': (loser.percentageChange || 0) >= 0,
+                                'bg-red-50 text-red-600': (loser.percentageChange || 0) < 0
+                              }" >
+                            <fa-icon [icon]="(loser.percentageChange || 0) >= 0 ? faArrowUp : faArrowDown" class="mr-1 text-xs"></fa-icon>
+                            {{ loser.percentageChange || 0 | number:'1.2-2' }}%
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <ng-template #noLosers>
+                    <div class="text-center py-4 text-gray-400 text-sm">
+                      No losers for this timeframe
+                    </div>
+                  </ng-template>
                 </div>
 
-                <!-- Right: Values and Gain -->
-                <div class="text-right flex-shrink-0">
-                  <div class="flex items-center justify-end gap-1 text-green-600 font-bold text-base">
-                    <fa-icon [icon]="faArrowUp" class="text-xs"></fa-icon>
-                    {{ gainer.percentageChange | number:'1.1-1' }}%
-                  </div>
-                  <div class="text-xs text-gray-600">₹{{ gainer.absoluteChange | number:'1.0-0' }}</div>
-                </div>
-              </div>
-
-              <!-- Compact value display -->
-              <div class="flex justify-end gap-3 mt-1 text-xs text-gray-500">
-                <span>₹{{ gainer.previousValue | number:'1.0-0' }}</span>
-                <span>→</span>
-                <span class="text-gray-700 font-medium">₹{{ gainer.currentValue | number:'1.0-0' }}</span>
               </div>
             </div>
           </div>
-          </div>
-          <ng-template #noGainers>
+
+          <div *ngIf="!isLoadingGainersLosers && getSelectedTopGainers().length === 0 && getSelectedTopLosers().length === 0">
             <div class="text-center py-8 text-gray-500">
               <fa-icon [icon]="faTrophy" class="text-4xl mb-2"></fa-icon>
               <p>No gainers or losers data available for this timeframe</p>
+              <p class="text-sm mt-2">This could be because there are no matching holdings in both snapshots.</p>
             </div>
-          </ng-template>
+          </div>
         </div>
 
         <!-- Statistics View -->
@@ -743,8 +794,8 @@
 
                     <div class="text-right">
                       <div class="flex items-center gap-1">
-                        <span class="hover:text-blue-600 truncate max-w-xs bg-none border-none p-0 m-0 text-left text-gray-800 font-medium"
-                          [matTooltip]="portfolioStatistics.bestPerformer?.name">
+                        <span class="hover:text-blue-600 truncate max-w-xs bg-none border-none p-0 m-0 text-left text-gray-700 font-medium"
+                          [matTooltip]="(portfolioStatistics.bestPerformer?.name) + ' (' + portfolioStatistics.bestPerformer?.userId + ')'">
                           {{ portfolioStatistics.bestPerformer?.name }}
                         </span>
                         <span class="text-sm rounded-md px-1 py-[1px]" *ngIf="(portfolioStatistics.bestPerformer?.name || '').length > 0"
@@ -763,8 +814,8 @@
                     <span class="text-base text-gray-600">Worst Performer</span>
                     <div class="text-right">
                       <div class="flex items-center gap-1">
-                         <span class="hover:text-blue-600 truncate max-w-xs bg-none border-none p-0 m-0 text-left text-gray-800 font-medium"
-                               [matTooltip]="portfolioStatistics.worstPerformer?.name">
+                         <span class="hover:text-blue-600 truncate max-w-xs bg-none border-none p-0 m-0 text-left text-gray-700 font-medium"
+                               [matTooltip]="(portfolioStatistics.worstPerformer?.name) + ' (' + portfolioStatistics.worstPerformer?.userId + ')'">
                           {{ portfolioStatistics.worstPerformer?.name }}
                         </span>
                         <span class="text-sm rounded-md px-1 py-[1px]" *ngIf="(portfolioStatistics.worstPerformer?.name || '').length > 0"
@@ -784,7 +835,7 @@
                     <div class="flex justify-between items-center mb-2">
                       <span class="text-base text-gray-600">Top Holding</span>
                       <span class="hover:text-blue-600 truncate max-w-xs text-gray-800 font-medium"
-                            [matTooltip]="portfolioStatistics.topHolding?.name">
+                            [matTooltip]="(portfolioStatistics.topHolding?.name) + ' (' + portfolioStatistics.topHolding?.userId + ')'">
                         {{ portfolioStatistics.topHolding?.name }}
                       </span>
                     </div>
@@ -833,3 +884,4 @@
   [sortByColumn]="popupSortByColumn"
   (close)="closePnLDetailsPopup()"
 ></app-pnl-details-popup>
+

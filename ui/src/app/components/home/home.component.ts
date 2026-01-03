@@ -33,6 +33,7 @@ import { UserFilterComponent } from "../shared/user-filter/user-filter.component
 import { WebSocketService } from '../../services/web-socket.service';
 import { PnlDetailsPopupComponent, UserDetailsData, ColumnConfig } from "../shared/pnl-details-popup/pnl-details-popup.component";
 import {MatTooltip} from "@angular/material/tooltip";
+import { HistoricalTimelineValuesService } from '../../services/historical-timeline-values.service';
 
 interface DashboardStats {
   totalInvestment: number;
@@ -74,9 +75,9 @@ interface PortfolioStatistics {
   totalHoldingsMF: number;
   totalGainers: number;
   totalLosers: number;
-  bestPerformer: { name: string; returns: number; } | null;
-  worstPerformer: { name: string; returns: number; } | null;
-  topHolding: { name: string; value: number; concentration: number; } | null;
+  bestPerformer: { name: string; returns: number; userId: string } | null;
+  worstPerformer: { name: string; returns: number; userId: string } | null;
+  topHolding: { name: string; value: number; concentration: number; userId: string } | null;
 }
 
 @Component({
@@ -159,6 +160,10 @@ portfolioMetrics: PortfolioMetrics = {
   selectedTimeframe: string = '3M';
   selectedMetricView: 'returns' | 'gainers-losers' | 'statistics' = 'returns';
 
+  // Gainers and Losers data
+  gainersLosersData: any = null;
+  isLoadingGainersLosers = false;
+
   // Font Awesome icons
   protected readonly faWallet = faWallet;
   protected readonly faChartLine = faChartLine;
@@ -186,6 +191,7 @@ portfolioMetrics: PortfolioMetrics = {
     private userViewStateService: UserViewStateService,
     private utilsService: UtilsService,
     private ws: WebSocketService,
+    private historicalTimelineValuesService: HistoricalTimelineValuesService,
     @Inject(DOCUMENT) private document: Document,
     private router: Router
   ) {}
@@ -648,6 +654,11 @@ portfolioMetrics: PortfolioMetrics = {
     }
     this.calculateHistoricalStats();
     this.calculatePortfolioStatistics();
+
+    // Refetch gainers/losers data if that view is active
+    if (this.selectedMetricView === 'gainers-losers') {
+      this.fetchGainersAndLosers();
+    }
   }
 
   private populateTimelineChartDataForUsers(userIds: string[]): void {
@@ -933,83 +944,58 @@ portfolioMetrics: PortfolioMetrics = {
 
   // Get top gainers for selected timeframe
   getSelectedTopGainers() {
-    return this.getTopPerformers(true);
-  }
-
-
-
-  private getTopPerformers(gainers: boolean): any[] {
-    if (!this.historicalTimelineValues || this.historicalTimelineValues.length === 0) {
+    if (!this.gainersLosersData || !this.gainersLosersData.topGainers) {
       return [];
     }
+    // Backend already filtered by selected users, no need to filter again
+    return this.gainersLosersData.topGainers;
+  }
 
-    const daysAgo = this.getTimeframeDays(this.selectedTimeframe);
-    if (!daysAgo) return [];
-
-    const targetDate = new Date();
-    targetDate.setDate(targetDate.getDate() - daysAgo);
-    targetDate.setHours(0, 0, 0, 0);
-
-    // Filter by selected users
-    let filteredData = this.historicalTimelineValues;
-    if (this.selectedUserIds.length > 0 && this.selectedUserIds.length < this.users.length) {
-      filteredData = this.historicalTimelineValues.filter(d =>
-        this.selectedUserIds.includes(d.userId)
-      );
+  // Get top losers for selected timeframe
+  getSelectedTopLosers() {
+    if (!this.gainersLosersData || !this.gainersLosersData.topLosers) {
+      return [];
     }
+    // Backend already filtered by selected users, no need to filter again
+    return this.gainersLosersData.topLosers;
+  }
 
-    // Get current data (today's data)
-    const currentData = new Map<string, any>();
-    filteredData
-      .filter(d => this.isToday(new Date(d.date)))
-      .forEach(d => currentData.set(d.userId, d));
+  // Fetch gainers and losers from backend
+  fetchGainersAndLosers(): void {
+    this.isLoadingGainersLosers = true;
 
-    // Get historical data
-    const historicalData = new Map<string, any>();
-    const historicalEntries = filteredData.filter(d => {
-      const entryDate = new Date(d.date);
-      entryDate.setHours(0, 0, 0, 0);
-      return Math.abs(entryDate.getTime() - targetDate.getTime()) < 24 * 60 * 60 * 1000;
-    });
-    historicalEntries.forEach(d => historicalData.set(d.userId, d));
+    // Pass selected user IDs to backend for proper filtering
+    let userIdsToSend: string[] | undefined = undefined;
+    if (this.selectedUserIds.length > 0 && this.selectedUserIds.length < this.users.length) {
+      // Some users selected (not all)
+      userIdsToSend = this.selectedUserIds;
+    }
+    // If all users selected or no users selected, pass undefined (backend will fetch all)
 
-    // Calculate performance for each user
-    const performances: any[] = [];
-    currentData.forEach((current, userId) => {
-      const historical = historicalData.get(userId);
-      if (historical && historical.netChangePercentage !== undefined) {
-        const currentPercentage = current.netChangePercentage || 0;
-        const historicalPercentage = historical.netChangePercentage || 0;
-        const percentageChange = currentPercentage - historicalPercentage;
-
-        performances.push({
-          userId,
-          userName: this.users.find(u => u.userId === userId)?.profile?.userName || userId,
-          percentageChange,
-          currentValue: current.currentValue || 0,
-          historicalValue: historical.currentValue || 0,
-          absoluteChange: (current.currentValue || 0) - (historical.currentValue || 0),
-          currentPnl: current.netPnl || 0,
-          historicalPnl: historical.netPnl || 0
-        });
+    this.historicalTimelineValuesService.getGainersAndLosers(this.selectedTimeframe, userIdsToSend).subscribe({
+      next: (response) => {
+        this.gainersLosersData = response.data;
+        this.isLoadingGainersLosers = false;
+      },
+      error: (error) => {
+        console.error('Error fetching gainers and losers:', error);
+        this.toastrService.error('Failed to load gainers and losers data', 'Error');
+        this.isLoadingGainersLosers = false;
       }
     });
-
-    // Sort and filter
-    if (gainers) {
-      performances.sort((a, b) => b.percentageChange - a.percentageChange);
-    } else {
-      performances.sort((a, b) => a.percentageChange - b.percentageChange);
-    }
-
-    return performances.slice(0, 5);
   }
+
 
   // Change timeframe
   changeTimeframe(timeframe: string): void {
     this.selectedTimeframe = timeframe;
     // Calculate historical value for the selected timeframe
     this.calculateHistoricalStats();
+
+    // Fetch gainers and losers for the new timeframe
+    if (this.selectedMetricView === 'gainers-losers') {
+      this.fetchGainersAndLosers();
+    }
   }
 
   private calculateHistoricalStats() {
@@ -1138,6 +1124,11 @@ portfolioMetrics: PortfolioMetrics = {
   // Change metric view
   changeMetricView(view: 'returns' | 'gainers-losers' | 'statistics'): void {
     this.selectedMetricView = view;
+
+    // Fetch gainers/losers data when that tab is selected
+    if (view === 'gainers-losers' && !this.gainersLosersData) {
+      this.fetchGainersAndLosers();
+    }
   }
 
   // Calculate portfolio statistics from holdings
@@ -1161,9 +1152,9 @@ portfolioMetrics: PortfolioMetrics = {
     let losersCount = 0;
     let totalInvestment = 0;
 
-    let bestPerformer: { name: string; returns: number; } | null = null;
-    let worstPerformer: { name: string; returns: number; } | null = null;
-    let topHolding: { name: string; value: number; concentration: number; } | null = null;
+    let bestPerformer: { name: string; returns: number; userId: string } | null = null;
+    let worstPerformer: { name: string; returns: number; userId: string } | null = null;
+    let topHolding: { name: string; value: number; concentration: number; userId: string } | null = null;
 
     let maxReturn = -Infinity;
     let minReturn = Infinity;
@@ -1193,7 +1184,8 @@ portfolioMetrics: PortfolioMetrics = {
         maxReturn = returnPercent;
         bestPerformer = {
           name: holding.instrument || holding.tradingSymbol,
-          returns: returnPercent
+          returns: returnPercent,
+          userId: holding.userId
         };
       }
 
@@ -1202,7 +1194,8 @@ portfolioMetrics: PortfolioMetrics = {
         minReturn = returnPercent;
         worstPerformer = {
           name: holding.instrument || holding.tradingSymbol,
-          returns: returnPercent
+          returns: returnPercent,
+          userId: holding.userId
         };
       }
 
@@ -1213,7 +1206,8 @@ portfolioMetrics: PortfolioMetrics = {
         topHolding = {
           name: holding.instrument || holding.tradingSymbol,
           value: currentValue,
-          concentration: concentration
+          concentration: concentration,
+          userId: holding.userId
         };
       }
     });

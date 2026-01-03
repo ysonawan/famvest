@@ -1,5 +1,6 @@
 package com.fam.vest.controller;
 
+import com.fam.vest.dto.response.GainersLosersResponse;
 import com.fam.vest.dto.response.HoldingDetails;
 import com.fam.vest.service.HoldingService;
 import com.fam.vest.util.CommonUtil;
@@ -34,5 +35,15 @@ public class HoldingController {
         log.info("Fetching holdings for type: {}, tradingAccountId: {} by: {}", type.orElse("all"), tradingAccountId.orElse("all"), userDetails.getUsername());
         List<HoldingDetails> holdings = holdingService.getHoldings(userDetails, type, tradingAccountId);
         return CommonUtil.success(holdings);
+    }
+
+    @GetMapping("/gainers-losers")
+    public ResponseEntity<Object> getGainersAndLosers(@RequestParam(value = "timeframe", defaultValue = "3M") String timeframe,
+                                                       @RequestParam(value = "userIds", required = false) Optional<List<String>> tradingAccountIds) {
+
+        UserDetails userDetails = UserDetailsUtil.getCurrentUserDetails();
+        log.info("Fetching gainers and losers for timeframe: {}, tradingAccountIds: {} by: {}", timeframe, tradingAccountIds.orElse(List.of()).toString(), userDetails.getUsername());
+        GainersLosersResponse response = holdingService.getGainersAndLosers(userDetails, timeframe, tradingAccountIds);
+        return CommonUtil.success(response);
     }
 }

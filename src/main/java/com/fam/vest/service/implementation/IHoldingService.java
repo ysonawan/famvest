@@ -10,6 +10,8 @@ import com.fam.vest.entity.AccountSnapshot;
 import com.fam.vest.entity.ApplicationUser;
 import com.fam.vest.entity.TradingAccount;
 import com.fam.vest.pojo.HoldingComparisonReport;
+import com.fam.vest.dto.response.GainersLosersResponse;
+import com.fam.vest.dto.response.HoldingComparisonDetails;
 import com.fam.vest.dto.response.HoldingDetails;
 import com.fam.vest.pojo.email.ResendEmailPayload;
 import com.fam.vest.repository.AccountSnapshotRepository;
@@ -236,6 +238,213 @@ public class IHoldingService implements HoldingService {
             log.error("Error while generating yearly portfolio report", exception);
             throw new InternalException("Error while generating yearly portfolio report: " + CommonUtil.getExceptionMessage(exception));
         }
+    }
+
+    @Override
+    public GainersLosersResponse getGainersAndLosers(UserDetails userDetails, String timeframe, Optional<List<String>> tradingAccountIds) {
+        log.info("Fetching gainers and losers for timeframe: {}, tradingAccountIds: {}", timeframe, tradingAccountIds.orElse(List.of()).toString());
+
+        // Calculate days based on timeframe
+        int daysAgo = getTimeframeDays(timeframe);
+
+        // Get target date for snapshot
+        Date targetDate = new Date();
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(targetDate);
+        calendar.add(Calendar.DAY_OF_YEAR, -daysAgo);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        Date snapshotDate = calendar.getTime();
+
+        // Get historical snapshot
+        Optional<AccountSnapshot> snapshotOpt = accountSnapshotRepository.findAccountSnapshotBySnapshotDate(snapshotDate);
+
+        // If exact date not found, find the closest one
+        if (snapshotOpt.isEmpty()) {
+            List<AccountSnapshot> snapshots = accountSnapshotRepository.findBySnapshotDateGreaterThanEqual(snapshotDate);
+            if (!snapshots.isEmpty()) {
+                snapshotOpt = Optional.of(snapshots.getFirst());
+            }
+        }
+
+        // Get current holdings - pass userIds for filtering
+        List<HoldingDetails> currentHoldings = new ArrayList<>();
+        if (tradingAccountIds.isPresent() && !tradingAccountIds.get().isEmpty()) {
+            // Fetch holdings for each specified user
+            for (String userId : tradingAccountIds.get()) {
+                currentHoldings.addAll(this.getHoldings(userDetails, Optional.empty(), Optional.of(userId)));
+            }
+        } else {
+            // Fetch all holdings
+            currentHoldings = this.getHoldings(userDetails, Optional.empty(), Optional.empty());
+        }
+
+        // Build response
+        GainersLosersResponse.GainersLosersResponseBuilder responseBuilder = GainersLosersResponse.builder()
+                .timeframe(timeframe)
+                .currentDate(new Date())
+                .currentHoldings(currentHoldings);
+
+        if (snapshotOpt.isPresent()) {
+            AccountSnapshot snapshot = snapshotOpt.get();
+            List<HoldingDetails> snapshotHoldings = snapshot.getHoldings();
+
+            // Filter snapshot holdings by user if specified
+            if (tradingAccountIds.isPresent() && !tradingAccountIds.get().isEmpty()) {
+                List<String> userIds = tradingAccountIds.get();
+                snapshotHoldings = snapshotHoldings.stream()
+                        .filter(h -> userIds.contains(h.getUserId()))
+                        .toList();
+            }
+
+            responseBuilder.snapshotDate(snapshot.getSnapshotDate())
+                    .snapshotHoldings(snapshotHoldings);
+
+            // Calculate gainers and losers
+            List<HoldingComparisonDetails> comparisons = compareHoldings(snapshotHoldings, currentHoldings);
+
+            // Sort and get top gainers
+            List<HoldingComparisonDetails> topGainers = comparisons.stream()
+                    .filter(c -> c.getPercentageChange() > 0)
+                    .sorted((a, b) -> Double.compare(b.getPercentageChange(), a.getPercentageChange()))
+                    .limit(5)
+                    .toList();
+
+            // Sort and get top losers
+            List<HoldingComparisonDetails> topLosers = comparisons.stream()
+                    .filter(c -> c.getPercentageChange() < 0)
+                    .sorted(Comparator.comparingDouble(HoldingComparisonDetails::getPercentageChange))
+                    .limit(5)
+                    .toList();
+
+            responseBuilder.topGainers(topGainers)
+                    .topLosers(topLosers);
+        }
+
+        return responseBuilder.build();
+    }
+
+    private int getTimeframeDays(String timeframe) {
+        return switch (timeframe) {
+            case "1D" -> 1;
+            case "1W" -> 7;
+            case "1M" -> 30;
+            case "3M" -> 90;
+            case "6M" -> 180;
+            case "1Y" -> 365;
+            default -> 90; // Default to 3 months
+        };
+    }
+
+    private List<HoldingComparisonDetails> compareHoldings(List<HoldingDetails> snapshotHoldings, List<HoldingDetails> currentHoldings) {
+        // Group holdings by tradingSymbol to consolidate across accounts
+        Map<String, ConsolidatedHolding> snapshotMap = consolidateHoldingsBySymbol(snapshotHoldings);
+        Map<String, ConsolidatedHolding> currentMap = consolidateHoldingsBySymbol(currentHoldings);
+
+        List<HoldingComparisonDetails> comparisons = new ArrayList<>();
+
+        // Compare consolidated holdings
+        for (Map.Entry<String, ConsolidatedHolding> entry : snapshotMap.entrySet()) {
+            String tradingSymbol = entry.getKey();
+            ConsolidatedHolding snapshotHolding = entry.getValue();
+            ConsolidatedHolding currentHolding = currentMap.get(tradingSymbol);
+
+            // Only compare if instrument exists in both snapshots
+            if (currentHolding != null) {
+                double previousPrice = snapshotHolding.avgPrice;
+                double currentPrice = currentHolding.avgPrice;
+
+                double absoluteChange = currentPrice - previousPrice;
+                double percentageChange = previousPrice > 0 ? (absoluteChange / previousPrice) * 100 : 0.0;
+
+                // Use minimum total quantity across all accounts
+                double minQuantity = Math.min(snapshotHolding.totalQuantity, currentHolding.totalQuantity);
+
+                if (minQuantity > 0) {
+                    HoldingComparisonDetails comparison = HoldingComparisonDetails.builder()
+                            .userId(snapshotHolding.userIds) // Comma-separated user IDs
+                            .tradingSymbol(tradingSymbol)
+                            .instrument(snapshotHolding.instrument)
+                            .instrumentToken(snapshotHolding.instrumentToken)
+                            .type(snapshotHolding.type)
+                            .previousQuantity(snapshotHolding.totalQuantity)
+                            .previousPrice(previousPrice)
+                            .previousValue(minQuantity * previousPrice)
+                            .currentQuantity(currentHolding.totalQuantity)
+                            .currentPrice(currentPrice)
+                            .currentValue(minQuantity * currentPrice)
+                            .minQuantity(minQuantity)
+                            .absoluteChange(absoluteChange)
+                            .percentageChange(percentageChange)
+                            .build();
+
+                    comparisons.add(comparison);
+                }
+            }
+        }
+
+        return comparisons;
+    }
+
+    /**
+     * Consolidate holdings by trading symbol across all accounts
+     */
+    private Map<String, ConsolidatedHolding> consolidateHoldingsBySymbol(List<HoldingDetails> holdings) {
+        Map<String, ConsolidatedHolding> consolidated = new HashMap<>();
+
+        for (HoldingDetails holding : holdings) {
+            String tradingSymbol = holding.getTradingSymbol();
+
+            consolidated.compute(tradingSymbol, (key, existing) -> {
+                if (existing == null) {
+                    // First occurrence of this symbol
+                    ConsolidatedHolding ch = new ConsolidatedHolding();
+                    ch.tradingSymbol = tradingSymbol;
+                    ch.instrument = holding.getInstrument();
+                    ch.instrumentToken = holding.getInstrumentToken();
+                    ch.type = holding.getType();
+                    ch.totalQuantity = holding.getQuantity() != null ? holding.getQuantity() : 0.0;
+                    ch.avgPrice = holding.getLastPrice() != null ? holding.getLastPrice() : 0.0;
+                    ch.userIds = holding.getUserId();
+                    return ch;
+                } else {
+                    // Consolidate with existing entry
+                    double existingQty = existing.totalQuantity;
+                    double newQty = holding.getQuantity() != null ? holding.getQuantity() : 0.0;
+                    existing.totalQuantity = existingQty + newQty;
+
+                    // Price should be same across accounts for same symbol, use the first one
+                    // If different, it will use the first encountered price
+                    if (existing.avgPrice == 0.0 && holding.getLastPrice() != null) {
+                        existing.avgPrice = holding.getLastPrice();
+                    }
+
+                    // Append userId if different
+                    if (!existing.userIds.contains(holding.getUserId())) {
+                        existing.userIds = existing.userIds + "," + holding.getUserId();
+                    }
+
+                    return existing;
+                }
+            });
+        }
+
+        return consolidated;
+    }
+
+    /**
+     * Helper class to consolidate holdings across accounts
+     */
+    private static class ConsolidatedHolding {
+        String tradingSymbol;
+        String instrument;
+        Long instrumentToken;
+        String type;
+        double totalQuantity;
+        double avgPrice;
+        String userIds; // Comma-separated list of user IDs holding this instrument
     }
 
     private void generateAndSendPortfolioReport(List<HoldingComparisonReport> report, String reportType,
