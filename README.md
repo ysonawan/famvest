@@ -206,7 +206,12 @@ s3cmd --configure
 
 Follow the prompts to enter your AWS Access Key and Secret Key.
 
-### Step 11: Verify All Installations
+### Step 11: Install Python
+```bash
+sudo apt install python3 python3-pip python3-venv -y
+```
+
+### Step 12: Verify All Installations
 Run the following commands to verify all dependencies are properly installed:
 ```bash
 java -version

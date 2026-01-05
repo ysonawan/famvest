@@ -8,8 +8,8 @@ Requires=nginx.service postgresql.service
 Restart=always
 RestartSec=5
 User=root
-WorkingDirectory=/opt/app/famvest-app
-ExecStart=/usr/bin/java -jar /opt/app/famvest-app/famvest-app.jar
+WorkingDirectory=/opt/app/famvest
+ExecStart=/usr/bin/java -jar /opt/app/famvest/famvest.jar
 SuccessExitStatus=143
 
 [Install]
