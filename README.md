@@ -70,9 +70,13 @@ sudo systemctl status nginx
 ```
 
 ### Step 4: Install Java Development Kit (JDK 17)
-Install OpenJDK 17 required for running the FamVest application:
+Install temurin 17 required for running the FamVest application:
 ```bash
-sudo apt install -y openjdk-17-jdk
+sudo apt install -y wget apt-transport-https gnupg
+wget -qO - https://packages.adoptium.net/artifactory/api/gpg/key/public | sudo gpg --dearmor -o /usr/share/keyrings/adoptium.gpg
+echo "deb [signed-by=/usr/share/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/adoptium.list
+sudo apt update
+sudo apt install temurin-17-jdk
 ```
 
 Verify the installation:
