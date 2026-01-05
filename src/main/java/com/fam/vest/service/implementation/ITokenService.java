@@ -35,7 +35,6 @@ public class ITokenService implements TokenService {
     private final TradingAccountRepository tradingAccountRepository;
     private final ApplicationUserRepository applicationUserRepository;
     private final ApplicationUserTradingAccountMappingRepository applicationUserTradingAccountMappingRepository;
-    private final ExecutorService executorService;
 
     @Autowired
     public ITokenService(TradingAccountRepository tradingAccountRepository,
@@ -45,8 +44,6 @@ public class ITokenService implements TokenService {
         this.tradingAccountRepository = tradingAccountRepository;
         this.applicationUserRepository = applicationUserRepository;
         this.applicationUserTradingAccountMappingRepository = applicationUserTradingAccountMappingRepository;
-        // Create a thread pool with a reasonable number of threads (can be configured)
-        this.executorService = Executors.newFixedThreadPool(Math.min(Runtime.getRuntime().availableProcessors(), 8));
     }
 
     @Value("${fam.vest.app.python.path:python3}")
@@ -96,13 +93,28 @@ public class ITokenService implements TokenService {
             return "No trading accounts found for renewal";
         }
 
+        // Create a dynamic thread pool based on the number of accounts
+        int poolSize = Math.min(tradingAccounts.size(), Math.max(4, Runtime.getRuntime().availableProcessors()));
+        log.info("Creating thread pool with {} threads for {} trading accounts", poolSize, tradingAccounts.size());
+
+        ExecutorService executor = Executors.newFixedThreadPool(poolSize, new ThreadFactory() {
+            private final java.util.concurrent.atomic.AtomicInteger count = new java.util.concurrent.atomic.AtomicInteger(0);
+            @Override
+            public Thread newThread(Runnable r) {
+                Thread t = new Thread(r);
+                t.setName("token-renewal-" + count.incrementAndGet());
+                t.setDaemon(false);
+                return t;
+            }
+        });
+
         List<CompletableFuture<Void>> futures = new ArrayList<>();
         for (TradingAccount tradingAccount : tradingAccounts) {
             if (null != tradingAccount) {
                 // Submit each renewal task to the executor service for parallel execution
                 CompletableFuture<Void> future = CompletableFuture.runAsync(
                     () -> this.runScriptToRenewRequestToken(tradingAccount),
-                    executorService
+                    executor
                 );
                 futures.add(future);
             }
@@ -113,6 +125,7 @@ public class ITokenService implements TokenService {
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
                     .get(5, TimeUnit.MINUTES);
             log.info("Request token renewal completed for all {} users", futures.size());
+            return "Request token renewal completed for all users. Please verify the status on dashboard.";
         } catch (TimeoutException e) {
             log.error("Token renewal timed out after 5 minutes for some accounts", e);
             return "Request token renewal timed out. Some accounts may not have completed renewal.";
@@ -123,9 +136,20 @@ public class ITokenService implements TokenService {
         } catch (ExecutionException e) {
             log.error("Error during token renewal execution", e.getCause());
             return "Request token renewal completed with errors. Please verify the status on dashboard.";
+        } finally {
+            // Shutdown the executor to free resources
+            executor.shutdown();
+            try {
+                if (!executor.awaitTermination(30, TimeUnit.SECONDS)) {
+                    log.warn("Executor did not terminate, forcing shutdown");
+                    executor.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                log.error("Executor shutdown was interrupted", e);
+                executor.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
         }
-
-        return "Request token renewal completed for all users. Please verify the status on dashboard.";
     }
 
     private void runScriptToRenewRequestToken(TradingAccount tradingAccount) {
