@@ -10,7 +10,7 @@
 	</parent>
 
 	<groupId>com.fam.vest</groupId>
-	<artifactId>fam-vest-app</artifactId>
+	<artifactId>famvest-app</artifactId>
 	<version>2.0.0</version>
 	<name>FamVest Application</name>
 	<description>Application to manage equity portfolios of family accounts</description>
