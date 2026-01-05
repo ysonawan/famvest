@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.5.5</version>
+		<version>3.5.9</version>
 		<relativePath/>
 	</parent>
 
@@ -26,6 +26,7 @@
 		<cron-utils.version>9.2.1</cron-utils.version>
 		<jsoup.version>1.21.1</jsoup.version>
 		<exec-maven-plugin.version>3.5.1</exec-maven-plugin.version>
+		<commons-codec.version>1.16.0</commons-codec.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -122,6 +123,11 @@
 			<groupId>org.jsoup</groupId>
 			<artifactId>jsoup</artifactId>
 			<version>${jsoup.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>${commons-codec.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

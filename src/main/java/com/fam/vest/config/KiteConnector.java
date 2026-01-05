@@ -61,7 +61,6 @@ public class KiteConnector {
         }
         if(StringUtil.isNullOrEmpty(tradingAccount.getRequestToken())) {
             log.warn("Request token is null or empty for userId: {}", tradingAccount.getUserId());
-            tokenService.renewRequestToken(tradingAccount.getUserId());
             throw new RequestTokenMissingException("Request token is null or empty for userId: "+ tradingAccount.getUserId());
         }
         // Use synchronized block for thread safety
