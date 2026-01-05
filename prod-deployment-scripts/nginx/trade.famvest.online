@@ -1,0 +1,13 @@
+server {
+    listen 80;
+    listen 443 ssl;
+
+    server_name trade.famvest.online;
+
+    # SSL certificate for old domain
+    ssl_certificate     /etc/letsencrypt/live/trade.famvest.online/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/trade.famvest.online/privkey.pem;
+
+    # Redirect everything to the new domain (HTTPS)
+    return 301 https://famvest.online$request_uri;
+}

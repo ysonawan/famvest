@@ -6,7 +6,7 @@ CREATE DATABASE fam_vest_app;
 
 ---- Create User ----
 --#https://vault.zoho.in#/unlock/extension?routeName=%23%2Fpasscard%2F63500000000007049
-CREATE USER app_user WITH ENCRYPTED PASSWORD '<Replace with password from zoho vault>';
+CREATE USER app_user WITH ENCRYPTED PASSWORD '123456';
 
 ---- Grant privileges to the user ----
 GRANT CONNECT ON DATABASE fam_vest_app TO app_user;
