@@ -265,7 +265,7 @@ public class IHoldingService implements HoldingService {
         if (snapshotOpt.isEmpty()) {
             List<AccountSnapshot> snapshots = accountSnapshotRepository.findBySnapshotDateGreaterThanEqual(snapshotDate);
             if (!snapshots.isEmpty()) {
-                snapshotOpt = Optional.of(snapshots.getFirst());
+                snapshotOpt = Optional.of(snapshots.get(0));
             }
         }
 
