@@ -16,8 +16,8 @@ export class ApplicationPropertiesService {
   public loadConfig(): void {
     this.config = {
       dev: {
-        baseUrl: 'http://localhost:8090/rest',
-        wsUrl: 'http://localhost:8090/ws',
+        baseUrl: 'http://localhost:8081/rest',
+        wsUrl: 'http://localhost:8081/ws',
       },
       prod: {
         baseUrl: '/rest',

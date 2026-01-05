@@ -18,7 +18,7 @@
 	<properties>
 		<jjwt-api.version>0.12.6</jjwt-api.version>
 		<kiteconnect.version>3.5.1</kiteconnect.version>
-		<java.version>21</java.version>
+		<java.version>17</java.version>
 		<spring-boot-admin.version>3.5.2</spring-boot-admin.version>
 		<hibernate-types-60.version>2.21.1</hibernate-types-60.version>
 		<resilience4j-spring-boot3.version>2.3.0</resilience4j-spring-boot3.version>
