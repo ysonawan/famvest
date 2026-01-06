@@ -30,6 +30,6 @@ public class FundsJsonNodeConverter implements AttributeConverter<List<FundDetai
     @Override
     public List<FundDetails> convertToEntityAttribute(String dbData) {
         Type listType = new TypeToken<List<FundDetails>>() {}.getType();
-        return new Gson().fromJson(dbData, listType);
+        return gson.fromJson(dbData, listType);
     }
 }

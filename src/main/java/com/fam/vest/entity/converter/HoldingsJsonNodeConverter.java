@@ -30,6 +30,6 @@ public class HoldingsJsonNodeConverter implements AttributeConverter<List<Holdin
     @Override
     public List<HoldingDetails> convertToEntityAttribute(String dbData) {
         Type listType = new TypeToken<List<HoldingDetails>>() {}.getType();
-        return new Gson().fromJson(dbData, listType);
+        return gson.fromJson(dbData, listType);
     }
 }

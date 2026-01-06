@@ -30,6 +30,6 @@ public class OrdersJsonNodeConverter implements AttributeConverter<List<OrderDet
     @Override
     public List<OrderDetails> convertToEntityAttribute(String dbData) {
         Type listType = new TypeToken<List<OrderDetails>>() {}.getType();
-        return new Gson().fromJson(dbData, listType);
+        return gson.fromJson(dbData, listType);
     }
 }

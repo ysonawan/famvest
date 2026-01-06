@@ -30,6 +30,6 @@ public class PositionsJsonNodeConverter implements AttributeConverter<List<Posit
     @Override
     public List<PositionDetails> convertToEntityAttribute(String dbData) {
         Type listType = new TypeToken<List<PositionDetails>>() {}.getType();
-        return new Gson().fromJson(dbData, listType);
+        return gson.fromJson(dbData, listType);
     }
 }

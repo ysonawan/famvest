@@ -30,6 +30,6 @@ public class HistoricalPositionsTimelineJsonNodeConverter implements AttributeCo
     @Override
     public List<HistoricalPositionsTimeline> convertToEntityAttribute(String dbData) {
         Type listType = new TypeToken<List<HistoricalPositionsTimeline>>() {}.getType();
-        return new Gson().fromJson(dbData, listType);
+        return gson.fromJson(dbData, listType);
     }
 }

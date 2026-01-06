@@ -30,6 +30,6 @@ public class HistoricalFundsTimelineJsonNodeConverter implements AttributeConver
     @Override
     public List<HistoricalFundsTimeline> convertToEntityAttribute(String dbData) {
         Type listType = new TypeToken<List<HistoricalFundsTimeline>>() {}.getType();
-        return new Gson().fromJson(dbData, listType);
+        return gson.fromJson(dbData, listType);
     }
 }

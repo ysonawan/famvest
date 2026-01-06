@@ -30,6 +30,6 @@ public class MfOrdersJsonNodeConverter implements AttributeConverter<List<MFOrde
     @Override
     public List<MFOrderDetails> convertToEntityAttribute(String dbData) {
         Type listType = new TypeToken<List<MFOrderDetails>>() {}.getType();
-        return new Gson().fromJson(dbData, listType);
+        return gson.fromJson(dbData, listType);
     }
 }

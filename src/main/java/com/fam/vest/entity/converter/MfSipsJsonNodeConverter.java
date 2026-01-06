@@ -30,6 +30,6 @@ public class MfSipsJsonNodeConverter implements AttributeConverter<List<MFSIPDet
     @Override
     public List<MFSIPDetails> convertToEntityAttribute(String dbData) {
         Type listType = new TypeToken<List<MFSIPDetails>>() {}.getType();
-        return new Gson().fromJson(dbData, listType);
+        return gson.fromJson(dbData, listType);
     }
 }

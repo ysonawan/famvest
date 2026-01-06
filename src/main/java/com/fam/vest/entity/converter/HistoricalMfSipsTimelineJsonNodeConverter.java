@@ -30,6 +30,6 @@ public class HistoricalMfSipsTimelineJsonNodeConverter implements AttributeConve
     @Override
     public List<HistoricalMfSipsTimeline> convertToEntityAttribute(String dbData) {
         Type listType = new TypeToken<List<HistoricalMfSipsTimeline>>() {}.getType();
-        return new Gson().fromJson(dbData, listType);
+        return gson.fromJson(dbData, listType);
     }
 }
