@@ -1,5 +1,5 @@
 [Unit]
-Description=FamVest Application
+Description=Famvest Application
 
 After=network.target nginx.service postgresql.service
 Requires=nginx.service postgresql.service
@@ -9,8 +9,30 @@ Restart=always
 RestartSec=5
 User=root
 WorkingDirectory=/opt/app/famvest
-ExecStart=/usr/bin/java -jar /opt/app/famvest/famvest.jar
+
+# JVM memory flags for famvest (4GB heap, high allocation for active trading app)
+ExecStart=/usr/bin/java \
+  -Xmx4g \
+  -Xms2g \
+  -XX:MaxDirectMemorySize=1g \
+  -XX:MaxMetaspaceSize=512m \
+  -XX:MetaspaceSize=256m \
+  -XX:+UseG1GC \
+  -XX:MaxGCPauseMillis=200 \
+  -XX:G1HeapRegionSize=16m \
+  -Xss256k \
+  -Xlog:gc*:file=/var/log/famvest/gc.log:time,uptime:filecount=5,filesize=10m \
+  -jar /opt/app/famvest/famvest.jar
+
 SuccessExitStatus=143
+
+# Systemd memory limits for high-activity app
+MemoryLimit=4G
+MemoryHigh=3.5G
+CPUQuota=300%
+
+# OOM protection
+OOMScoreAdjust=-500
 
 [Install]
 WantedBy=multi-user.target
