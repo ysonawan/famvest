@@ -1,8 +1,11 @@
-<div class="relative w-full">
+<div class="relative w-full" #dropdownContainer>
   <!-- Main Button -->
   <button
     (click)="toggleDropdown()"
+    [disabled]="disabled"
     class="w-full flex items-center justify-between gap-2 px-3 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50 focus:outline-none text-sm transition-all"
+    [ngClass]="{ 'opacity-70 cursor-not-allowed bg-gray-100': disabled, 'hover:bg-gray-50': !disabled }"
+    #dropdownButton
   >
     <div class="flex items-center gap-2 flex-1 min-w-0">
       <!-- User Avatar -->
@@ -34,10 +37,17 @@
     </svg>
   </button>
 
-  <!-- Dropdown Menu -->
+  <!-- Dropdown Menu - Fixed positioning when openAbove to escape dialog stacking context -->
   <div
     *ngIf="isDropdownOpen"
-    class="absolute left-0 right-0 mt-2 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-96 overflow-hidden"
+    [ngClass]="{
+      'fixed': openAbove,
+      'absolute': !openAbove,
+      'top-full mt-2': !openAbove,
+      'bottom-full mb-2': openAbove
+    }"
+    [style]="openAbove ? getFixedPositionStyles() : null"
+    class="left-0 right-0 bg-white border border-gray-200 rounded-md shadow-xl max-h-96 overflow-hidden z-50"
   >
     <!-- Search Input -->
     <div class="p-3 border-b border-gray-200">
@@ -87,8 +97,8 @@
 
   <!-- Backdrop to close dropdown -->
   <div
-    *ngIf="isDropdownOpen"
-    class="fixed inset-0 z-40"
+    *ngIf="isDropdownOpen && openAbove"
+    class="fixed inset-0 z-[9998]"
     (click)="closeDropdown()"
   ></div>
 </div>

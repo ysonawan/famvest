@@ -159,8 +159,11 @@
                     type="number"
                     [(ngModel)]="item.quantity"
                     (input)="updateQuantity(item, $event)"
-                    min="1"
+                    (blur)="roundQuantityToLotSize(item)"
+                    [step]="item.lotSize"
+                    min="0"
                     class="w-20 px-2 py-1 border border-gray-300 rounded-md  focus:ring-2 focus:ring-blue-100 focus:outline-none"
+                    [title]="'Lot Size: ' + item.lotSize"
                   />
                 </td>
 
@@ -269,12 +272,14 @@
 
               <!-- Quantity -->
               <div>
-                <label [for]="'quantity-' + i" class="text-sm text-gray-500 block mb-1">Quantity</label>
+                <label [for]="'quantity-' + i" class="text-sm text-gray-500 block mb-1 whitespace-nowrap">Quantity (Lot: {{ item.lotSize }})</label>
                 <input
                   [id]="'quantity-' + i"
                   type="number"
                   [(ngModel)]="item.quantity"
                   (input)="updateQuantity(item, $event)"
+                  (blur)="roundQuantityToLotSize(item)"
+                  [step]="item.lotSize"
                   min="1"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:outline-none"
                 />

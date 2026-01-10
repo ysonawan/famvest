@@ -19,13 +19,15 @@ import {MarketDepthInvokerComponent} from "../../shared/market-depth-invoker/mar
 import {FaIconComponent} from "@fortawesome/angular-fontawesome";
 import {faChartPie, faPlus, faTrash} from "@fortawesome/free-solid-svg-icons";
 import {MatTooltip} from "@angular/material/tooltip";
+import {UserDropdownComponent} from "../../shared/user-dropdown/user-dropdown.component";
+import {InstrumentsService} from "../../../services/instruments.service";
 
 @Component({
   selector: 'app-add-manage-order-dialog',
   templateUrl: './add-manage-order-dialog.component.html',
   styleUrls: ['./add-manage-order-dialog.component.css'],
   standalone: true,
-  imports: [FormsModule, CommonModule, DragDropModule, SmallChipComponent, MarketDepthInvokerComponent, FaIconComponent, MatTooltip]
+  imports: [FormsModule, CommonModule, DragDropModule, SmallChipComponent, MarketDepthInvokerComponent, FaIconComponent, MatTooltip, UserDropdownComponent]
 })
 export class AddManageOrderDialogComponent implements OnInit, OnDestroy {
 
@@ -59,7 +61,7 @@ export class AddManageOrderDialogComponent implements OnInit, OnDestroy {
   variety: string | null = null;
 
   requestType: 'place' | 'modify' = 'place'; // Default to 'place' unless orderId is provided
-  lotSize: number = 1; // Default lot size, can be adjusted based on the instrument
+  lotSize: number = 0; // Default lot size, can be adjusted based on the instrument
 
   private lastEnteredPrice: number = 0;
   private lastEnteredTriggeredPrice: number = 0;
@@ -70,6 +72,7 @@ export class AddManageOrderDialogComponent implements OnInit, OnDestroy {
               private ws: WebSocketService,
               private ordersService: OrdersService,
               private fundsService: FundsService,
+              private instrumentsService: InstrumentsService,
               private userViewStateService: UserViewStateService,
               @Inject(MAT_DIALOG_DATA) public data: { sourceData: any, instrument: any}) {
     this.sourceData = data.sourceData;
@@ -80,6 +83,7 @@ export class AddManageOrderDialogComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.fetchUsers();
     this.fetchFunds();
+    this.fetchInstrumentDetails();
     this.subscribeToWebSocket();
   }
 
@@ -94,7 +98,37 @@ export class AddManageOrderDialogComponent implements OnInit, OnDestroy {
       this.toastr.error('You can only add up to 5 positions in one request', 'Error');
       return;
     }
-    this.orders.push({ tradingAccountId: '', quantity: 0 });
+    // Auto-select the first available user
+    const selectedUserId = this.getNextAvailableUserId();
+    const newOrder = { tradingAccountId: '', quantity: this.lotSize, requiredMargin: 0, charges: 0, availableMargin: 0 };
+    if (selectedUserId) {
+      const cachedQty = this.getCachedQuantity(selectedUserId, this.instrument.exchange);
+      newOrder.tradingAccountId = selectedUserId;
+      newOrder.quantity = cachedQty;
+      this.computeRequiredMargin(newOrder);
+    }
+    this.orders.push(newOrder);
+  }
+
+  getNextAvailableUserId(): string {
+    if (!this.users || this.users.length === 0) {
+      return '';
+    }
+
+    // Get all currently selected user IDs
+    const selectedUserIds = this.orders
+      .map((order: any) => order.tradingAccountId)
+      .filter((id: string) => id !== '');
+
+    // Find the first user that is not already selected
+    for (const user of this.users) {
+      if (!selectedUserIds.includes(user.userId)) {
+        return user.userId;
+      }
+    }
+
+    // If all users are selected, return the first user
+    return this.users[0]?.userId || '';
   }
 
   removeAccount(index: number) {
@@ -126,7 +160,6 @@ export class AddManageOrderDialogComponent implements OnInit, OnDestroy {
         if (instrument && instrument.lastPrice !== tick.lastTradedPrice) {
           instrument.change = tick.change;
           instrument.lastPrice = tick.lastTradedPrice;
-          this.lotSize = tick.lotSize;
         }
       });
     });
@@ -374,6 +407,15 @@ export class AddManageOrderDialogComponent implements OnInit, OnDestroy {
     this.userService.getTradingAccounts().subscribe({
       next: (response) => {
         this.users = response.data.filter(user => user.active);
+        // Auto-select first available user for initial order if this is a new bulk order
+        if (!this.orders[0].tradingAccountId && !(this.sourceData.orderId || this.sourceData.isExitPosition || this.sourceData.isCopy)) {
+           let selectedUserId = this.getNextAvailableUserId();
+          if(selectedUserId) {
+            this.orders[0].tradingAccountId = selectedUserId;
+            this.orders[0].quantity = this.getCachedQuantity(selectedUserId, this.instrument.exchange);
+            this.computeRequiredMargin(this.orders[0]);
+          }
+        }
       },
       error: (error) => {
         this.toastr.error(error.error.message, 'Error');
@@ -401,7 +443,24 @@ export class AddManageOrderDialogComponent implements OnInit, OnDestroy {
       });
     }
 
-  getHistoricalQuantity(order: any, segment: string): void {
+    fetchInstrumentDetails(): void {
+      this.instrumentsService.getInstrumentByToken(this.instrument.instrumentToken).subscribe({
+        next: (response: any) => {
+          if (response.data && response.data.lotSize) {
+            this.lotSize = response.data.lotSize;
+            // Update instrument with additional details from API
+            this.instrument = { ...this.instrument, ...response.data };
+          }
+        },
+        error: (error) => {
+          console.error('Error fetching instrument details:', error);
+          // Keep default lot size if fetch fails
+          this.lotSize = 1;
+        }
+      });
+    }
+
+    getHistoricalQuantity(order: any, segment: string): void {
     let userViewState = this.userViewStateService.getState();
     if(userViewState.ordersHistory) {
       let ordersHistory = userViewState.ordersHistory[`${order.tradingAccountId}_${segment}`];
@@ -423,10 +482,34 @@ export class AddManageOrderDialogComponent implements OnInit, OnDestroy {
     });
   }
 
+  getCachedQuantity(tradingAccountId: string, exchange: string): number {
+    const cacheKey = `add_manage_order_qty_${tradingAccountId}_${exchange}`;
+    const cached = localStorage.getItem(cacheKey);
+    return cached ? parseInt(cached) : this.lotSize || 1;
+  }
+
+  cacheQuantity(tradingAccountId: string, exchange: string, quantity: number): void {
+    const cacheKey = `add_manage_order_qty_${tradingAccountId}_${exchange}`;
+    localStorage.setItem(cacheKey, quantity.toString());
+  }
+
   computeAllRequiredMargins() {
     this.orders.forEach((order: any) => {
       this.computeRequiredMargin(order);
     });
+  }
+
+  roundQuantityToLotSize(order: any): void {
+    if (!order.quantity || order.quantity <= 0) {
+      return;
+    }
+    // Round to nearest lot size multiple
+    const rounded = Math.round(order.quantity / this.lotSize) * this.lotSize;
+    if (rounded !== order.quantity) {
+      order.quantity = rounded;
+    }
+    this.computeRequiredMargin(order);
+    this.cacheQuantity(order.tradingAccountId, this.instrument.exchange, order.quantity)
   }
 
   computeRequiredMargin(order: any): void {

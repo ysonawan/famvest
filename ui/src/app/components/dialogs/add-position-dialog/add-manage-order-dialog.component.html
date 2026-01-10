@@ -123,6 +123,9 @@
     <!-- Accounts Section -->
     <div>
       <label class="text-sm text-gray-600">Positions <span class="text-red-500">*</span></label>
+      <span class="text-sm ml-2 bg-gray-200 text-gray-700 px-2 py-1 rounded-full">
+          {{ orders.length }} position(s)
+        </span>
       <div class="space-y-3 mt-2">
         <div
           *ngFor="let order of orders; let i = index"
@@ -131,29 +134,28 @@
           <!-- Account Select -->
           <div class="flex flex-col flex-grow min-w-[150px] w-full sm:w-auto">
             <label class="text-sm text-gray-600 mb-1">Trading Account <span class="text-red-500">*</span></label>
-            <select [disabled]="(sourceData.orderId != null && !sourceData.isCopy) || sourceData.isExitPosition"
-                    [(ngModel)]="order.tradingAccountId"
-                    (ngModelChange)="getHistoricalQuantity(order, instrument.segment); computeRequiredMargin(order)"
-                    class="form-control"
-            >
-              <option value="" disabled>Select Account</option>
-              <option *ngFor="let user of users" [value]="user.userId">
-                {{ user.name }} - {{ user.userId }}
-              </option>
-            </select>
+            <app-user-dropdown
+              [disabled]="(sourceData.orderId != null && !sourceData.isCopy) || sourceData.isExitPosition"
+              [(selectedUserId)]="order.tradingAccountId"
+              (selectUser)="getHistoricalQuantity(order, instrument.segment); computeRequiredMargin(order)"
+              [placeholder]="'Select Trading Account'"
+              [openAbove]="true">
+            </app-user-dropdown>
           </div>
 
           <!-- Quantity & Funds -->
           <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-end w-full sm:w-auto">
             <!-- Quantity -->
             <div class="flex flex-col w-full sm:w-24">
-              <label class="text-sm text-gray-600 mb-1">Quantity <span class="text-red-500">*</span></label>
+              <label class="text-sm text-gray-600 mb-1 whitespace-nowrap">Quantity <span class="text-red-500">* <label class="text-gray-600">(Lot: {{ lotSize }})</label></span></label>
               <input
-                type="text"
+                type="number"
                 [(ngModel)]="order.quantity"
                 (ngModelChange)="computeRequiredMargin(order)"
+                (blur)="roundQuantityToLotSize(order)"
                 placeholder="Quantity"
-                maxlength="5"
+                [step]="lotSize"
+                min="0"
                 class="form-control"
               />
             </div>
@@ -182,12 +184,19 @@
 
       <!-- Add Position -->
       <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-4 gap-2">
-        <button *ngIf="(sourceData.orderId == null || sourceData.isCopy) && !sourceData.isExitPosition"
-                (click)="addAccount()"
-                class="text-sm text-blue-600 hover:underline focus:outline-none">
-          <fa-icon [icon]="faPlus"></fa-icon>
-          Add Position
-        </button>
+      <!-- Add Position Button -->
+      <button
+        *ngIf="(sourceData.orderId == null || sourceData.isCopy) && !sourceData.isExitPosition && orders.length < 5"
+        (click)="addAccount()"
+        class="w-full sm:w-fit py-1 px-2 border-2 border-dashed border-blue-300 rounded-lg text-blue-600 hover:bg-blue-50 transition-colors text-sm font-medium flex items-center gap-2"
+      >
+        <fa-icon [icon]="faPlus"></fa-icon>
+        Add Another Position
+      </button>
+
+        <p *ngIf="orders.length >= 5" class="text-sm text-gray-500 text-center">
+          Maximum 5 positions per order are allowed.
+        </p>
 
         <div class="flex flex-wrap gap-2 text-sm">
           <app-small-chip [text]="buySell" [color]="buySell === 'BUY' ? 'blue' : 'red'"></app-small-chip>

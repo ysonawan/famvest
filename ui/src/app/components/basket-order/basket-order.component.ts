@@ -19,6 +19,7 @@ import {ApiErrorResponse} from "../../models/api-error-response.model";
 import {UserDropdownComponent} from "../shared/user-dropdown/user-dropdown.component";
 import { MarketDepthInvokerComponent } from '../shared/market-depth-invoker/market-depth-invoker.component';
 import { BasketCommunicationService } from '../../services/basket-communication.service';
+import { InstrumentsService } from '../../services/instruments.service';
 
 @Component({
   selector: 'app-basket-order',
@@ -70,6 +71,7 @@ export class BasketOrderComponent implements OnInit, OnDestroy {
     private tradingAccountService: TradingAccountService,
     private ws: WebSocketService,
     private ordersService: OrdersService,
+    private instrumentsService: InstrumentsService,
     private basketCommunicationService: BasketCommunicationService
   ) {
   }
@@ -216,11 +218,42 @@ export class BasketOrderComponent implements OnInit, OnDestroy {
       change: 0,
       priceUpdated: false, // Flag to track if price has been set from LTP
       isIntraday: this.isIntraday, // Set the intraday flag based on component state
-      productType: 'NRML'
+      productType: 'NRML',
+      lotSize: 0 // Default lot size, will be updated from API
     };
     basketItem.productType = this.getProductType(basketItem);
+
+    // Fetch instrument details to get lot size
+    this.instrumentsService.getInstrumentByToken(instrument.instrumentToken).subscribe({
+      next: (response: any) => {
+        if (response.data && response.data.lotSize) {
+          basketItem.lotSize = response.data.lotSize;
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching instrument details:', error);
+        // Keep default lot size if fetch fails
+        basketItem.lotSize = 1;
+      }
+    });
+
     this.basketItems.push(basketItem);
     this.subscribeToInstrument(instrument.instrumentToken);
+    this.calculateBasketMargin();
+    this.calculateNetPremium();
+  }
+
+  roundQuantityToLotSize(item: any): void {
+    if (!item.quantity || item.quantity <= 0) {
+      return;
+    }
+    // Round to nearest lot size multiple
+    const rounded = Math.round(item.quantity / item.lotSize) * item.lotSize;
+    if (rounded !== item.quantity) {
+      item.quantity = rounded;
+    }
+    // Cache the quantity for this exchange
+    this.cacheQuantity(item.exchange, item.quantity);
     this.calculateBasketMargin();
     this.calculateNetPremium();
   }
@@ -600,7 +633,8 @@ export class BasketOrderComponent implements OnInit, OnDestroy {
       change: item.change,
       priceUpdated: item.priceUpdated,
       isIntraday: item.isIntraday,
-      productType: item.productType
+      productType: item.productType,
+      lotSize: item.lotSize
     }));
 
     localStorage.setItem(this.BASKET_CACHE_KEY, JSON.stringify(cachedItems));

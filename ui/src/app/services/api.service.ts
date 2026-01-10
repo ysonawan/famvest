@@ -28,7 +28,6 @@ export class ApiService {
   }
 
   post<T>(path: string, body: any = {}, options = {}): Observable<T> {
-    console.log(`API POST: ${this.baseUrl}${path}`, body);
     return this.http.post<T>(`${this.baseUrl}${path}`, body, options).pipe(
       catchError(this.formatErrors)
     );

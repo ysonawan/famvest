@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output, ViewChild, ElementRef} from '@angular/core';
 import {CommonModule, NgOptimizedImage} from '@angular/common';
 import { TradingAccountService } from '../../../services/trading-account.service';
 import {fallbackAvatarUrl} from "../../../constants/constants";
@@ -18,6 +18,9 @@ export class UserDropdownComponent implements OnInit {
               private userDataStateService: UserDataStateService) {
   }
 
+  @ViewChild('dropdownContainer') dropdownContainer!: ElementRef;
+  @ViewChild('dropdownButton') dropdownButton!: ElementRef;
+
   ngOnInit(): void {
     this.fetchTradingAccounts();
   }
@@ -26,6 +29,8 @@ export class UserDropdownComponent implements OnInit {
   filteredUsers: any[] = [];
   @Input() selectedUserId: string = '';
   @Input() placeholder: string = 'Select Trading Account';
+  @Input() disabled: boolean = false;
+  @Input() openAbove: boolean = false;
 
   @Output() selectedUserIdChange = new EventEmitter<string>();
   @Output() selectUser = new EventEmitter<string>();
@@ -73,6 +78,9 @@ export class UserDropdownComponent implements OnInit {
   }
 
   toggleDropdown(): void {
+    if (this.disabled) {
+      return;
+    }
     this.isDropdownOpen = !this.isDropdownOpen;
     if (this.isDropdownOpen) {
       this.searchTerm = '';
@@ -83,6 +91,19 @@ export class UserDropdownComponent implements OnInit {
   closeDropdown(): void {
     this.isDropdownOpen = false;
     this.searchTerm = '';
+  }
+
+  getFixedPositionStyles(): string {
+    if (!this.dropdownButton?.nativeElement) {
+      return '';
+    }
+    try {
+      const rect = this.dropdownButton.nativeElement.getBoundingClientRect();
+      const bottom = window.innerHeight - rect.top + 8;
+      return `position: fixed; left: ${rect.left}px; width: ${rect.width}px; bottom: ${bottom}px; top: auto; right: auto; z-index: 9999;`;
+    } catch (e) {
+      return '';
+    }
   }
 
   onSearchChange(): void {
