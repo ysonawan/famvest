@@ -2,6 +2,7 @@ package com.fam.vest.service.implementation;
 
 import com.fam.vest.pojo.ExchangeStatusResponse;
 import com.fam.vest.pojo.ExchangeTimingResponse;
+import com.fam.vest.pojo.MarketHolidaysResponse;
 import com.fam.vest.service.MarketInformationService;
 import com.fam.vest.util.CommonUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,9 @@ public class IMarketInformationService implements MarketInformationService {
     @Value("${fam.vest.app.exchange.status.api}")
     private String exchangeStatusApi;
 
+    @Value("${fam.vest.app.market.holidays.api}")
+    private String marketHolidaysApi;
+
     public IMarketInformationService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
@@ -35,6 +39,11 @@ public class IMarketInformationService implements MarketInformationService {
     @Override
     public ExchangeStatusResponse getExchangeStatus(String exchange) {
         return restTemplate.getForObject(exchangeStatusApi.replace("{exchange}", exchange), ExchangeStatusResponse.class);
+    }
+
+    @Override
+    public MarketHolidaysResponse getMarketHolidays() {
+        return restTemplate.getForObject(marketHolidaysApi, MarketHolidaysResponse.class);
     }
 
 }

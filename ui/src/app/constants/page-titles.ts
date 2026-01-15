@@ -13,6 +13,7 @@ export const PAGE_TITLES = {
   scheduledTasks: 'Scheduled Tasks | FamVest App',
   applicationUsers: 'Application Users | FamVest App',
   ipos: 'IPOs | FamVest App',
+  marketHolidays: 'Market Holidays | FamVest App',
   myProfile: 'My Profile | FamVest App',
   login: 'Login | FamVest App',
   signup: 'Signup | FamVest App',

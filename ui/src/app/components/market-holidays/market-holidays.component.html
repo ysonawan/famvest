@@ -1,0 +1,113 @@
+<div class="page-container">
+  <!-- Header Section -->
+  <div class="mb-4">
+    <p class="text-gray-600 mb-6">Trading and settlement holidays for Indian exchanges</p>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="flex items-center justify-center py-12">
+    <div class="text-center">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <p class="text-gray-600 mt-4">Loading market holidays...</p>
+    </div>
+  </div>
+
+  <!-- Holidays List -->
+  <div *ngIf="!isLoading && !errorMessage" class="space-y-3 md:space-y-4 page-content">
+    <!-- Empty State -->
+    <div *ngIf="holidays.length === 0" class="bg-gray-50 border border-gray-200 rounded-md p-8 text-center">
+      <p class="text-gray-600">No holidays found</p>
+    </div>
+
+    <!-- Holiday Cards -->
+    <div *ngFor="let holiday of holidays" class="bg-white border border-gray-200 rounded-md overflow-hidden">
+      <!-- Main Holiday Card -->
+      <button
+        (click)="toggleHolidayDetails(holiday)"
+        type="button"
+        class="w-full p-3 text-left cursor-pointer hover:bg-blue-50 transition-colors bg-white border-none"
+      >
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <!-- Left Section: Date and Description -->
+          <div class="flex-1 min-w-0">
+            <div class="flex flex-wrap items-center gap-2 md:gap-3 mb-2">
+              <div class="text-base font-semibold text-gray-700">
+                {{ holiday.date | istDate:'date-ordinal' }}
+              </div>
+              <app-small-chip
+                [text]="holiday.holiday_type"
+                [color]="holiday.holiday_type === 'TRADING_HOLIDAY' ? 'red' : 'orange'">
+              </app-small-chip>
+            </div>
+            <label class="text-gray-600 text-sm block">{{ holiday.description }}</label>
+          </div>
+
+          <!-- Right Section: Summary -->
+          <div class="flex gap-4 md:gap-6 text-sm">
+            <div class="flex flex-col items-end">
+              <span class="text-gray-500 text-sm">Closed</span>
+              <span class="font-semibold text-gray-700">{{ (holiday.closed_exchanges && holiday.closed_exchanges.length) || 0 }}</span>
+            </div>
+            <div class="flex flex-col items-end">
+              <span class="text-gray-500 text-sm">Open</span>
+              <span class="font-semibold text-gray-700">{{ (holiday.open_exchanges && holiday.open_exchanges.length) || 0 }}</span>
+            </div>
+            <div class="flex items-center ml-2">
+              <svg
+                [class.rotate-180]="selectedHoliday === holiday"
+                class="w-5 h-5 text-gray-400 transition-transform duration-200"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </button>
+
+      <!-- Expanded Details Section -->
+      <div *ngIf="selectedHoliday === holiday" class="border-t border-gray-200 p-3 animate-in fade-in duration-200">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Closed Exchanges -->
+          <div>
+            <label class="text-base font-semibold text-gray-700 mb-3 flex items-center gap-2">
+              <fa-icon [icon]="faTimesCircle" class="text-red-600"></fa-icon>
+              Closed Exchanges
+            </label>
+            <div class="flex flex-wrap gap-2">
+              <div *ngFor="let exchange of (holiday.closed_exchanges || [])"
+                   class="bg-red-50 border border-red-200 rounded px-3 py-1 text-sm font-medium text-red-800 inline-block">
+                {{ exchange }}
+              </div>
+              <div *ngIf="!holiday.closed_exchanges || holiday.closed_exchanges.length === 0" class="text-gray-500 text-sm italic">
+                No closed exchanges
+              </div>
+            </div>
+          </div>
+
+          <!-- Open Exchanges with Timings -->
+          <div>
+            <label class="text-base font-semibold text-gray-700 mb-3 flex items-center gap-2">
+              <fa-icon [icon]="faCheckCircle" class="text-green-600"></fa-icon>
+              Open Exchanges
+            </label>
+            <div class="flex flex-wrap gap-2">
+              <div *ngFor="let timing of (holiday.open_exchanges || [])"
+                   [matTooltip]="getExchangeTimingTooltip(timing.start_time, timing.end_time)"
+                   matTooltipPosition="above"
+                   class="bg-green-50 border border-green-200 rounded px-3 py-1 text-sm font-medium text-green-800 inline-bloc cursor-pointer">
+                {{ timing.exchange }}
+              </div>
+              <div *ngIf="!holiday.open_exchanges || holiday.open_exchanges.length === 0" class="text-gray-500 text-sm italic">
+                All exchanges closed
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

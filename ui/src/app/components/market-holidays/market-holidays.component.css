@@ -1,0 +1,31 @@
+.page-content {
+  max-height: calc(100vh - var(--header-height, 80px) - 80px);
+  min-height: calc(100vh - var(--header-height, 80px) - 80px);
+}
+
+/* Smooth transitions for details expansion */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-in {
+  animation: slideDown 0.2s ease-out;
+}
+
+/* Scrollbar styling */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+

@@ -4,6 +4,7 @@ import com.fam.vest.config.KiteConnector;
 import com.fam.vest.entity.StraddleStrategy;
 import com.fam.vest.entity.TradingAccount;
 import com.fam.vest.exception.InternalException;
+import com.fam.vest.pojo.ExchangeTiming;
 import com.fam.vest.pojo.ExchangeTimingResponse;
 import com.fam.vest.repository.InstrumentRepository;
 import com.fam.vest.repository.StraddleStrategyExecutionRepository;
@@ -27,6 +28,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -47,6 +49,9 @@ public class StraddleManager {
     private final EmailService emailService;
     private final TemplateEngine templateEngine;
     private ScheduledExecutorService scheduler;
+
+    private final String BFO_EXCHANGE = "BFO";
+    private final String NFO_EXCHANGE = "NFO";
 
 
     @Autowired
@@ -121,11 +126,14 @@ public class StraddleManager {
     private boolean isTradingHoliday() {
         LocalDate now = LocalDate.now();
         ExchangeTimingResponse exchangeTimingResponse = marketInformationService.getExchangeTradingTime(now);
-        if(null != exchangeTimingResponse.getData() && exchangeTimingResponse.getData().isEmpty()) {
+        if(null == exchangeTimingResponse.getData() || exchangeTimingResponse.getData().isEmpty()) {
             straddleLogger.info("{} is trading holiday. Skipping straddle strategy execution.", now);
             return true;
         }
-        return false;
+        Optional<ExchangeTiming> exchangeTiming = exchangeTimingResponse.getData().stream().
+                filter(et ->  BFO_EXCHANGE.equalsIgnoreCase(et.getExchange()) || NFO_EXCHANGE.equalsIgnoreCase(et.getExchange())).
+                findFirst();
+        return exchangeTiming.isEmpty();
     }
 
     @PreDestroy

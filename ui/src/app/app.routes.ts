@@ -18,6 +18,7 @@ import {HomeComponent} from "./components/home/home.component";
 import {BasketOrderComponent} from "./components/basket-order/basket-order.component";
 import {ProfileComponent} from "./components/profile/profile.component";
 import {AdministrationComponent} from "./components/administration/administration.component";
+import {MarketHolidaysComponent} from "./components/market-holidays/market-holidays.component";
 
 export const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full'},
@@ -33,6 +34,7 @@ export const routes: Routes = [
   { path: 'historical-data', component: HistoricalDataComponent, canActivate: [AuthGuard], data: { title: PAGE_TITLES.historicalData } },
   { path: 'administration', component: AdministrationComponent, canActivate: [AuthGuard, AdminGuard], data: { title: PAGE_TITLES.administration } },
   { path: 'ipos', component: IposComponent, canActivate: [AuthGuard], data: { title: PAGE_TITLES.ipos } },
+  { path: 'market-holidays', component: MarketHolidaysComponent, canActivate: [AuthGuard], data: { title: PAGE_TITLES.marketHolidays } },
   { path: 'profile', component: ProfileComponent, canActivate: [AuthGuard], data: { title: PAGE_TITLES.myProfile } },
   { path: 'login', component: LoginComponent, canActivate: [AuthGuard], data: { title: PAGE_TITLES.login } },
   { path: 'signup', component: SignUpComponent, data: { title: PAGE_TITLES.signup }},

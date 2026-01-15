@@ -15,7 +15,7 @@ import java.util.Optional;
 @Slf4j
 @RestController
 @AllArgsConstructor
-@RequestMapping("/rest/market")
+@RequestMapping("/rest/v1/market")
 public class MarketInformationController {
 
     private final MarketInformationService marketInformationService;
@@ -27,13 +27,20 @@ public class MarketInformationController {
             date = Optional.of(LocalDate.now());
         }
         log.info("Fetching market timings for date: {} by: {}", date, userDetails.getUsername());
-        return CommonUtil.success(marketInformationService.getExchangeTradingTime(date.get()));
+        return CommonUtil.success(marketInformationService.getExchangeTradingTime(date.get()).getData());
     }
 
     @GetMapping("/status/{exchange}")
-    public ResponseEntity<Object> getMarketStatus(@PathVariable("exchange") String exchange) {
+    public ResponseEntity<Object> getMarketStatus(@PathVariable String exchange) {
         UserDetails userDetails = UserDetailsUtil.getCurrentUserDetails();
         log.info("Fetching market status for exchange: {} by: {}", exchange, userDetails.getUsername());
-        return CommonUtil.success(marketInformationService.getExchangeStatus(exchange));
+        return CommonUtil.success(marketInformationService.getExchangeStatus(exchange).getData());
+    }
+
+    @GetMapping("/holidays")
+    public ResponseEntity<Object> getMarketHolidays() {
+        UserDetails userDetails = UserDetailsUtil.getCurrentUserDetails();
+        log.info("Fetching market holidays for by: {}", userDetails.getUsername());
+        return CommonUtil.success(marketInformationService.getMarketHolidays().getData());
     }
 }
