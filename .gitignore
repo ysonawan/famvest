@@ -75,3 +75,5 @@ Desktop.ini
 *~
 
 config/*
+
+src/main/resources/public
