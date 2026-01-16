@@ -10,6 +10,8 @@ import {IstDatePipe} from "../shared/pipes/ist-date.pipe";
 import {SmallChipComponent} from "../shared/small-chip/small-chip.component";
 import {MatTooltip} from "@angular/material/tooltip";
 
+type SortableColumn = 'date' | 'description' | 'holiday_type';
+
 @Component({
   selector: 'app-market-holidays',
   imports: [CommonModule, FaIconComponent, IstDatePipe, SmallChipComponent, MatTooltip],
@@ -21,10 +23,27 @@ export class MarketHolidaysComponent implements OnInit {
   holidays: MarketHoliday[] = [];
   errorMessage = '';
   isLoading = false;
-  selectedHoliday: MarketHoliday | null = null;
+  expandedExchanges: Set<MarketHoliday> = new Set();
+
+  sortColumn: SortableColumn | null = 'date';
+  sortDirection: 'asc' | 'desc' | null = 'asc';
 
   faCheckCircle = faCheckCircle;
   faTimesCircle = faTimesCircle;
+
+  private readonly sortAccessors: Record<SortableColumn, (row: any) => string | number | null> = {
+    date: (row) => row.date ?? 0,
+    description: (row) => row.description?.toString().toLowerCase() ?? '',
+    holiday_type: (row) => row.holiday_type?.toString().toLowerCase() ?? '',
+  };
+
+  get sortedHolidays(): any[] {
+    if (!this.sortColumn || !this.sortDirection) {
+      return this.holidays;
+    }
+
+    return [...this.holidays].sort((a, b) => this.compareRows(a, b));
+  }
 
   constructor(
     private marketInformationService: MarketInformationService,
@@ -57,8 +76,60 @@ export class MarketHolidaysComponent implements OnInit {
     });
   }
 
-  toggleHolidayDetails(holiday: MarketHoliday): void {
-    this.selectedHoliday = this.selectedHoliday === holiday ? null : holiday;
+  setSort(column: SortableColumn): void {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'desc' ? 'asc' : 'desc';
+      return;
+    }
+    this.sortColumn = column;
+    this.sortDirection = this.getDefaultDirection(column);
+  }
+
+  private getDefaultDirection(column: SortableColumn): 'asc' | 'desc' {
+    const descendingByDefault: SortableColumn[] = ['date'];
+    return descendingByDefault.includes(column) ? 'desc' : 'asc';
+  }
+
+  getSortIndicator(column: SortableColumn): string {
+    if (this.sortColumn !== column || !this.sortDirection) {
+      return '';
+    }
+    return this.sortDirection === 'asc' ? '↑' : '↓';
+  }
+
+  private compareRows(a: any, b: any): number {
+    const accessor = this.sortColumn ? this.sortAccessors[this.sortColumn] : null;
+    if (!accessor || !this.sortDirection) {
+      return 0;
+    }
+
+    const valueA = accessor(a);
+    const valueB = accessor(b);
+
+    if (valueA == null && valueB == null) { return 0; }
+    if (valueA == null) { return this.sortDirection === 'asc' ? -1 : 1; }
+    if (valueB == null) { return this.sortDirection === 'asc' ? 1 : -1; }
+
+    let comparison: number;
+    if (typeof valueA === 'string' && typeof valueB === 'string') {
+      comparison = valueA.localeCompare(valueB);
+    } else {
+      comparison = (valueA as number) - (valueB as number);
+    }
+
+    return this.sortDirection === 'asc' ? comparison : -comparison;
+  }
+
+  toggleExchanges(holiday: MarketHoliday): void {
+    if (this.expandedExchanges.has(holiday)) {
+      this.expandedExchanges.delete(holiday);
+    } else {
+      this.expandedExchanges.add(holiday);
+    }
+  }
+
+  isExchangesExpanded(holiday: MarketHoliday): boolean {
+    return this.expandedExchanges.has(holiday);
   }
 
   getExchangeTimingTooltip(startTime: number, endTime: number): string {
@@ -78,6 +149,18 @@ export class MarketHolidaysComponent implements OnInit {
     });
 
     return `${startFormatted} - ${endFormatted}`;
+  }
+
+  trackById(index: number, item: any): any {
+    return item.id;
+  }
+
+  isPastHoliday(dateString: string): boolean {
+    const holidayDate = new Date(dateString);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    holidayDate.setHours(0, 0, 0, 0);
+    return holidayDate < today;
   }
 
 }

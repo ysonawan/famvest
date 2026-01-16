@@ -9,7 +9,7 @@ export class IstDatePipe implements PipeTransform {
 
   constructor(private applicationProperties: ApplicationPropertiesService) { }
 
-  transform(value: number | string | Date, format: 'time' | 'time-no-mod' | 'time-force-mod' | 'date' | 'datetime' | 'datetime-ordinal' | 'datetime-ordinal-no-mod' | 'date-ordinal' = 'time'): string {
+  transform(value: number | string | Date, format: 'time' | 'time-no-mod' | 'time-force-mod' | 'date' | 'datetime' | 'datetime-ordinal' | 'datetime-ordinal-no-mod' | 'date-ordinal' | 'date-ordinal-with-day' = 'time'): string {
     if (!value) return '';
 
     if (typeof value === 'string' && /^\d{2}:\d{2}:\d{2}$/.test(value)) {
@@ -57,6 +57,12 @@ export class IstDatePipe implements PipeTransform {
       const month = inputDate.toLocaleString('en-IN', { timeZone, month: 'short' }); // e.g., Jul
       const year = inputDate.getFullYear();
       return `${getOrdinal(day)} ${month} ${year}`;
+    } else if (format === 'date-ordinal-with-day') {
+      const dayName = inputDate.toLocaleString('en-IN', { timeZone, weekday: 'short' }); // e.g., Mon, Tue
+      const day = inputDate.getDate();
+      const month = inputDate.toLocaleString('en-IN', { timeZone, month: 'short' }); // e.g., Jul
+      const year = inputDate.getFullYear();
+      return `${dayName}, ${getOrdinal(day)} ${month} ${year}`;
     }else if (format === 'datetime-ordinal' || format === 'datetime-ordinal-no-mod') {
       const day = inputDate.getDate();
       const ordinalDay = getOrdinal(day);
