@@ -242,8 +242,6 @@ public class IHoldingService implements HoldingService {
 
     @Override
     public GainersLosersResponse getGainersAndLosers(UserDetails userDetails, String timeframe, Optional<List<String>> tradingAccountIds) {
-        log.info("Fetching gainers and losers for timeframe: {}, tradingAccountIds: {}", timeframe, tradingAccountIds.orElse(List.of()).toString());
-
         // Calculate days based on timeframe
         int daysAgo = getTimeframeDays(timeframe);
 
@@ -268,18 +266,28 @@ public class IHoldingService implements HoldingService {
                 snapshotOpt = Optional.of(snapshots.get(0));
             }
         }
-
-        // Get current holdings - pass userIds for filtering
-        List<HoldingDetails> currentHoldings = new ArrayList<>();
-        if (tradingAccountIds.isPresent() && !tradingAccountIds.get().isEmpty()) {
-            // Fetch holdings for each specified user
-            for (String userId : tradingAccountIds.get()) {
-                currentHoldings.addAll(this.getHoldings(userDetails, Optional.empty(), Optional.of(userId)));
-            }
+        List<TradingAccount> tradingAccounts = tradingAccountService.getTradingAccounts(userDetails, true);
+        if(tradingAccountIds.isEmpty()) {
+            tradingAccountIds = Optional.of(tradingAccounts.stream()
+                    .map(TradingAccount::getUserId)
+                    .toList());
         } else {
-            // Fetch all holdings
-            currentHoldings = this.getHoldings(userDetails, Optional.empty(), Optional.empty());
+            //remove trading account id from the list which are not present in tradign accounts
+            List<String> validTradingAccountIds = tradingAccounts.stream()
+                    .map(TradingAccount::getUserId)
+                    .toList();
+            List<String> filteredTradingAccountIds = tradingAccountIds.get().stream()
+                    .filter(validTradingAccountIds::contains)
+                    .toList();
+            tradingAccountIds = Optional.of(filteredTradingAccountIds);
         }
+        List<String> userIds = tradingAccountIds.get();
+        // Get current holdings - pass userIds for filtering
+        List<HoldingDetails> currentHoldings = this.getHoldings(userDetails, Optional.empty(), Optional.empty());
+        // filter current holdings by userIds
+        currentHoldings = currentHoldings .stream().
+                filter(holdingDetails -> userIds.contains(holdingDetails.getUserId())).
+                toList();
 
         // Build response
         GainersLosersResponse.GainersLosersResponseBuilder responseBuilder = GainersLosersResponse.builder()
@@ -292,12 +300,9 @@ public class IHoldingService implements HoldingService {
             List<HoldingDetails> snapshotHoldings = snapshot.getHoldings();
 
             // Filter snapshot holdings by user if specified
-            if (tradingAccountIds.isPresent() && !tradingAccountIds.get().isEmpty()) {
-                List<String> userIds = tradingAccountIds.get();
-                snapshotHoldings = snapshotHoldings.stream()
-                        .filter(h -> userIds.contains(h.getUserId()))
-                        .toList();
-            }
+            snapshotHoldings = snapshotHoldings.stream()
+                    .filter(h -> userIds.contains(h.getUserId()))
+                    .toList();
 
             responseBuilder.snapshotDate(snapshot.getSnapshotDate())
                     .snapshotHoldings(snapshotHoldings);

@@ -11,7 +11,7 @@
 
 	<groupId>com.fam.vest</groupId>
 	<artifactId>famvest</artifactId>
-	<version>2.0.0</version>
+	<version>2.0.1</version>
 	<name>FamVest Application</name>
 	<description>Application to manage equity portfolios of family accounts</description>
 
